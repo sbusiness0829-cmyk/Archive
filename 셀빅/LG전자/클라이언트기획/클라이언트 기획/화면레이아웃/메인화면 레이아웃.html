@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- 영상 삭제 기능(모달) 제거됨 -->
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #141414;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Scroll-driven CSS variables */
+        :root {
+            /* 스크롤 진행 비율 0~1 */
+            --hero-p: 0;
+        }
+
+        /* 삭제 모달 관련 스타일 제거됨 */
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+        }
+        /* Off-canvas behavior for the dialog sidebar */
+        .sidebar[role="dialog"] {
+            background: #131313;
+            border-right: 1px solid #2a2a2a;
+            transform: translateX(-110%);
+            transition: transform 0.25s ease;
+            z-index: 2000;
+            overflow-y: auto;
+        }
+        .sidebar[role="dialog"].open {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #fff;
+            font-weight: 800;
+            font-family: 'Poppins', sans-serif;
+        }
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+        .close-btn:hover {
+            color: #e50914;
+        }
+        .sidebar-content {
+            padding: 20px;
+        }
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-item.active {
+            background: #e50914;
+        }
+        .item-icon {
+            font-size: 20px;
+        }
+        .item-text {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 3px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #b3b3b3;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .menu-item:hover {
+            background: #2a2a2a;
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: linear-gradient(135deg, rgba(229, 9, 20, 0.2) 0%, rgba(255, 107, 107, 0.2) 100%);
+            color: #e50914;
+            border-left: 3px solid #e50914;
+        }
+
+        /* Test Settings */
+        .test-settings {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .settings-title {
+            font-size: 14px;
+            color: #b3b3b3;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .setting-group {
+            margin-bottom: 25px;
+        }
+
+        .setting-label {
+            display: block;
+            font-size: 13px;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: #e50914;
+            background: #333333;
+        }
+
+        .setting-select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .setting-select:focus {
+            outline: none;
+            border-color: #e50914;
+            background: #333333;
+        }
+
+        .setting-slider {
+            width: 100%;
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .setting-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #e50914;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .setting-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .slider-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 13px;
+            color: #e50914;
+            font-weight: 600;
+        }
+
+        .update-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .update-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #202020 0%, #2a2a2a 100%); /* 기본 어두운 버튼 */
+            color: #cfcfcf;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+            cursor: pointer;
+            border: 1px solid #2a2a2a;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.35);
+        }
+
+        /* 호버 시 빨간색 활성화(직접 생성하기 버튼과 동일한 활성화 스타일) */
+        .nav-btn:hover,
+        .nav-btn:focus {
+            transform: scale(1.02);
+            background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%);
+            border-color: #e50914;
+            color: #ffffff;
+            box-shadow: 0 6px 18px rgba(229,9,20,0.35);
+            outline: none;
+        }
+
+        /* 유지용 active 클래스는 필요하면 자바스크립트에서 토글 가능 */
+        .nav-btn.active {
+            background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%);
+            border-color: #e50914;
+            color: #ffffff;
+            transform: scale(1.02);
+            box-shadow: 0 6px 18px rgba(229,9,20,0.35);
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .hotkey {
+            margin-left: auto;
+            font-size: 12px;
+            background: #2a2a2a;
+            padding: 4px 8px;
+            border-radius: 5px;
+            color: #666;
+        }
+
+        /* Top Navigation */
+        .top-nav { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            height: 70px; 
+            background: rgba(20,20,20,0.95); 
+            backdrop-filter: blur(10px); 
+            border-bottom: 1px solid #2a2a2a; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 0 24px; 
+            z-index: 999;
+        }
+
+        .nav-right {
+            margin-left: auto;
+        }
+
+        /* User Profile */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-profile:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e50914, #ff6b6b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            box-shadow: 0 2px 6px rgba(229,9,20,0.2);
+        }
+
+        .user-name {
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .brand { 
+            font-family: 'Poppins', sans-serif; 
+            font-weight: 800; 
+            font-size: 28px; 
+            color: #fff;
+            background: linear-gradient(135deg, #ffffff 0%, #e6e6e6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 0.5px;
+        }
+		.back-btn { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            width: 34px; 
+            height: 34px; 
+            border-radius: 8px; 
+            background: transparent; 
+            border: 1px solid #2a2a2a; 
+            color: #e0e0e0; 
+            cursor: pointer; 
+            font-size: 24px; 
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+		.back-btn:hover { 
+            border-color: #e50914; 
+            color: #fff; 
+        }
+        .back-btn.active {
+            border-color: #e50914;
+            color: #e50914;
+        }
+		.avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; border:1px solid #2a2a2a; }
+		.avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+		.user-name { font-weight:700; color:#e0e0e0; font-size:14px; }
+
+        /* Toggle Button */
+        /* Removed - no longer needed */
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-top: 70px; /* 기본 헤더 높이 */
+            padding: 10px; /* 패딩 추가 축소 */
+        }
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+        }
+        .overlay.show { display: block; }
+
+        /* Floating hamburger */
+        .hamburger-btn {
+            position: fixed; 
+            top: 14px; /* 헤더(70px) 내부 상단 정렬 */
+            left: 24px; /* 헤더 좌우 패딩(24px)과 정렬 */
+            width: 48px; 
+            height: 48px;
+            border-radius: 8px;
+            background: #e50914; 
+            color: #fff; 
+            border: none;
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            font-size: 24px; 
+            cursor: pointer; 
+            z-index: 2100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            transition: all 0.3s ease;
+        }
+        .hamburger-btn:hover {
+            background: #ff0a16;
+            transform: scale(1.05);
+        }
+        .hamburger-btn.active {
+            left: 330px; /* 사이드바 너비(280px) + 여백 */
+        }
+
+        /* Sidebar bottom action bar styles */
+        .sidebar-actions { position: sticky; bottom: 0; background: linear-gradient(180deg, rgba(26,26,26,0), #131313); padding-top: 10px; margin-top: 12px; }
+        .sidebar-actions .actions-inner { display:flex; gap:10px; padding:12px; }
+        .sidebar-actions .btn { padding:12px 18px; font-size:15px; border-radius:10px; }
+    .sidebar-actions .btn.ghost { background:#2a2a2a; border:1px solid #3a3a3a; color:#e0e0e0; }
+        .sidebar-actions .btn.primary { background: linear-gradient(135deg,#e50914 0%, #ff6b6b 100%); border-color: #e50914; color:#fff; box-shadow: 0 6px 18px rgba(229,9,20,0.28); }
+        .sidebar-actions .btn.primary:hover { transform: translateY(-2px); }
+        .sidebar-actions .btn.full { flex:1; }
+
+    /* Sidebar base width and padding */
+    .sidebar { width: 420px; max-width: 92%; padding:18px; box-sizing:border-box; }
+    .setting-list { padding:0 12px 18px 12px; }
+
+    /* Environment hierarchical layout */
+    .env-row { background:#121212; border:1px solid #242424; border-radius:10px; padding:14px 12px; margin-bottom:14px; width:100%; box-sizing:border-box; }
+    /* 대분류 */
+    .env-title { font-weight:900; color:#ffffff; margin-bottom:10px; font-size:20px; letter-spacing:0.2px; display:flex; align-items:center; gap:18px; }
+    /* 중분류 */
+    .env-item { display:flex; flex-direction:column; gap:6px; padding:8px 10px; border-radius:8px; background:transparent; margin-bottom:10px; margin-left:6px; border-left:3px solid rgba(255,255,255,0.03); }
+    .env-item .env-row-header { display:flex; align-items:center; gap:8px; }
+    .env-icon { width:18px; height:18px; border-radius:4px; background:#3a3a3a; display:inline-block; flex:0 0 18px; }
+    .env-label { font-size:15px; color:#e6e6e6; font-weight:800; }
+    /* 소분류 */
+    .env-current { font-size:12px; color:#bdbdbd; margin-top:4px; }
+    .env-value { color:#e50914; font-weight:900; font-size:13px; }
+
+    /* Force single-line for labels/values inside narrow sidebar */
+    .env-row .env-row-header { align-items:center; }
+    .env-row .env-row-header > div:first-child { display:flex; align-items:center; gap:8px; min-width:0; flex:1; }
+    .env-row .env-row-header > div:first-child > div { min-width:0; flex:1; }
+    .env-label, .env-current { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+    .env-current .env-value { white-space:nowrap; }
+    .env-row .env-row-header > div:last-child { flex:0 0 110px; min-width:80px; }
+    .env-control .input, input.input, select.input { font-size:13px; padding:6px 8px; }
+    @media (max-width:420px) {
+        .env-title { font-size:18px; }
+        .env-label { font-size:14px; }
+        .env-value { font-size:12px; }
+        .env-row .env-row-header > div:last-child { flex:0 0 100px; }
+    }
+    /* normalized env-row padding (handled above) */
+    .env-control .input { width:100%; padding:8px 10px; background:#1e1e1e; border:1px solid #2b2b2b; border-radius:8px; color:#fff; }
+    .env-actions { display:flex; gap:8px; justify-content:flex-end; }
+
+    /* 버튼 그룹 스타일 */
+    .env-button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    .env-option-btn {
+        flex: 1 1 auto;
+        min-width: 70px;
+        padding: 8px 12px;
+        background: #1e1e1e;
+        border: 1px solid #2b2b2b;
+        border-radius: 6px;
+        color: #e0e0e0;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+    }
+    .env-option-btn:hover {
+        background: #2a2a2a;
+        border-color: #e50914;
+        color: #fff;
+    }
+    .env-option-btn.active {
+        background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%);
+        border-color: #e50914;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+    }
+
+    /* vertical scroll controls for long lists inside sidebar */
+        .sb-scroll { display:flex; gap:6px; flex-direction:column; align-items:center; margin:6px 0; visibility:visible; opacity:0.95; }
+        .sb-scroll button { width:34px; height:34px; border-radius:6px; border:1px solid #2a2a2a; background:#161616; color:#e0e0e0; cursor:pointer; }
+        .sb-scroll button:hover { border-color:#e50914; color:#fff; }
+
+        /* Ensure selects/inputs fit inside sidebar */
+        .sidebar .input { max-width:100%; box-sizing:border-box; }
+
+        @media (max-width:420px) {
+            .hamburger-btn { left: 12px; top: 12px; width:42px; height:42px; }
+            .sidebar { width: 92%; padding:16px; }
+            .sidebar-actions .btn { padding:10px 12px; font-size:13px; }
+            .env-title { font-size:13px; }
+            .env-item { padding:6px; }
+            .sb-scroll button { width:28px; height:28px; }
+            .env-item > div { gap:4px; }
+        }
+
+        /* Netflix-like hero poster */
+        .hero-poster {
+            position: relative;
+            flex: 0 0 360px;
+            height: 160px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #2a2a2a;
+            background: #000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            will-change: transform;
+        }
+
+        .hero-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hero-poster::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: linear-gradient(135deg, #e50914, #ff4e4e);
+            color: #fff;
+            font-weight: 800;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            box-shadow: 0 6px 14px rgba(229,9,20,0.35);
+        }
+
+        .hero-poster:hover { transform: scale(1.03); box-shadow: 0 16px 40px rgba(0,0,0,0.45); }
+
+        /* Netflix-like wide hero banner */
+        /* Main content scrolling behavior */
+        .main-content {
+            position: relative;
+            min-height: 100vh;
+            background: #141414;
+            overflow-x: hidden;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        /* Hero section with fixed anchor behavior */
+        .hero-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(400px - 200px * var(--hero-p));
+            z-index: 10;
+            pointer-events: none; /* Allow scrolling through */
+        }
+
+        .hero-banner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #2a2a2a;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            background: #000;
+            pointer-events: auto; /* Re-enable interactions */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer; /* Indicate clickable */
+        }
+
+        /* Content section with scroll */
+        .content-section {
+            margin-top: calc(360px - 200px * var(--hero-p)); /* 히어로 축소에 맞춰 상단 여백 동적 조정 (기본 360, 최소 160) */
+            /* 히어로 높이가 줄어든 만큼 본문 유효 높이를 자동 보정 */
+            min-height: calc(100vh - (400px - 200px * var(--hero-p)));
+            position: relative;
+            z-index: 1;
+            background: #141414;
+            padding: 20px;
+            padding-top: 0; /* Remove top padding */
+            overflow-y: auto;
+        }
+
+        /* Gradient overlay for smooth transition */
+        .content-section::before {
+            content: '';
+            position: absolute;
+            top: -60px; /* Reduced distance for closer overlap */
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: linear-gradient(to bottom, transparent, #141414);
+            pointer-events: none;
+        }
+
+        /* Scroll progress indicator */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(229,9,20,0.3);
+            z-index: 1000;
+        }
+
+        .scroll-progress-bar {
+            height: 100%;
+            background: #e50914;
+            width: 0%;
+            transition: width 0.1s ease-out;
+        }
+        
+        .generation-buttons {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            /* 중앙 고정 + 스크롤에 따라 조금 더 아래로 보정 (크기 고정) */
+            transform: translate(-50%, calc(-50% + 28px * var(--hero-p)));
+            transform-origin: center center;
+            will-change: transform;
+            display: flex;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .generation-button {
+            padding: 18px 35px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            text-decoration: none;
+            background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.3);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .generation-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #ff6b6b 0%, #e50914 100%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(0.95);
+            z-index: 1;
+        }
+
+        .button-text {
+            position: relative;
+            z-index: 2;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            display: block;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .generation-button:hover {
+            transform: scale(1.15);
+            border-radius: 14px;
+            box-shadow: 0 8px 30px rgba(229, 9, 20, 0.6);
+        }
+
+        .generation-button:hover .button-text {
+            letter-spacing: 1.5px;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .generation-button:hover::before {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .generation-button:active {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+        }
+
+        .generation-button:active .button-text {
+            transform: scale(0.95);
+        }
+
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.65) 35%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.08) 85%);
+            pointer-events: none;
+        }
+
+        
+
+        .hero-content {
+            position: absolute;
+            left: 24px;
+            top: 50%;
+            /* 중앙 고정 + 스크롤에 따라 조금 더 아래로 보정 + 축소 */
+            transform: translateY(calc(-50% + 20px * var(--hero-p))) scale(calc(1 - 0.2 * var(--hero-p)));
+            transform-origin: left center;
+            will-change: transform;
+            z-index: 3; /* 텍스트를 최상단으로 */
+            padding-right: 24px;
+            max-width: 60%;
+        }
+
+        .hero-content h1 {
+            text-shadow: 0 2px 12px rgba(0,0,0,0.65);
+        }
+
+        @media (max-width: 768px) {
+            .hero-banner { height: 180px; }
+        }
+
+        .section {
+            margin-bottom: 14px; /* 리스트 간 여백 추가 축소 */
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px; /* 섹션 헤더 하단 여백 추가 축소 */
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .view-all {
+            color: #b3b3b3;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .view-all:hover {
+            color: #e50914;
+        }
+
+        /* Video Carousel */
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carousel {
+            display: flex;
+            gap: 10px; /* 카드 간격 축소 */
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: #e50914 #2a2a2a;
+            padding-bottom: 8px; /* 하단 패딩 축소 */
+        }
+
+        .carousel::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .carousel::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 10px;
+        }
+
+        .carousel::-webkit-scrollbar-thumb {
+            background: #e50914;
+            border-radius: 10px;
+        }
+
+        .carousel::-webkit-scrollbar-thumb:hover {
+            background: #f40612;
+        }
+
+        .video-card {
+            position: relative;
+            width: 360px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 10px;
+            overflow: visible;
+            background: #141414;
+            z-index: 1;
+        }
+
+        .video-card:hover {
+            z-index: 2;
+        }
+
+        .video-thumbnail {
+            position: relative;
+            width: 100%;
+            height: calc(360px * 9 / 16); /* 16:9 비율 (202.5px) */
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .video-card:hover .video-thumbnail {
+            transform: scale(1.05);
+            z-index: 3;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); }
+        }
+
+        /* 중복/충돌 비디오 썸네일 스타일 제거됨 (상단 16:9 정의 유지) */
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* 삭제 버튼 - 새 스타일 */
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            left: auto;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.65);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.25);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+            cursor: pointer;
+            opacity: 0.65; /* 기본은 옅게 표시 */
+            transform: none;
+            transition: all 0.22s ease;
+            z-index: 999; /* 맨 앞으로 배치 */
+            pointer-events: auto; /* 확실하게 클릭 가능 */
+        }
+        .delete-btn:hover { background:#e50914; transform: scale(1.08); box-shadow: 0 4px 12px rgba(229,9,20,0.4); opacity:1; }
+        /* hover/focus 시 선명하게 표시 */
+        .video-card:hover .video-thumbnail .delete-btn,
+        .video-card:hover .delete-btn,
+        .video-thumbnail:hover .delete-btn,
+        .video-card:focus-within .delete-btn { opacity:1; transform: none; }
+        /* 캐러셀 컨텍스트에서도 확실히 적용 */
+        .carousel .video-card:hover .video-thumbnail .delete-btn,
+        .carousel .video-card:hover .delete-btn,
+        .carousel .video-card:focus-within .delete-btn { opacity:1; transform: none; }
+        /* 터치 환경에서는 항상 표시 */
+        @media (hover: none) { .delete-btn { opacity: 1; transform: none; } }
+        .video-thumbnail { pointer-events:auto; }
+
+        .video-thumbnail::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.28);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1; /* overlay below delete & play icons */
+            pointer-events: none; /* don't block icon clicks */
+        }
+
+        .video-card:hover .video-thumbnail::after { opacity: 1; }
+
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 68px;
+            height: 68px;
+            background: radial-gradient(circle at 30% 30%, #ff4d4f 0%, #e50914 60%, #b0060e 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            opacity: 0;
+            color: #ffffff;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+            border: 2px solid rgba(255,255,255,0.9);
+            box-shadow: 0 8px 22px rgba(229,9,20,0.55), 0 2px 8px rgba(0,0,0,0.35);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            z-index: 3; /* overlay와 배지 위에, 삭제 버튼 아래 */
+            pointer-events: none; /* 재생 아이콘은 클릭 불가 (카드 전체 클릭으로 재생) */
+        }
+
+        .video-card:hover .play-icon { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+
+        .video-info {
+            padding: 16px 8px 8px 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .video-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding-right: 8px;
+        }
+
+        .video-meta {
+            font-size: 13px;
+            color: #b3b3b3;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .video-meta {
+            display: none; /* 업로드 날짜/조회수 메타 숨김 */
+            gap: 10px;
+            font-size: 14px;
+            color: #b3b3b3;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            display: none; /* 시간 표시 숨김 */
+        }
+
+        .video-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px; /* delete 버튼이 우측 상단으로 이동했으므로 배지는 좌측으로 이동 */
+            background: #e50914;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 2; /* 아래, 재생/삭제는 위 */
+        }
+
+        /* Scroll Buttons */
+        .scroll-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #2a2a2a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+            opacity: 1; /* 항상 표시되도록 */
+        }
+
+        .carousel-container:hover .scroll-btn {
+            opacity: 1; /* 호버 시에도 동일 유지 (향후 효과 확장 여지) */
+        }
+
+        .scroll-btn:focus-visible {
+            outline: 2px solid #e50914;
+            outline-offset: 2px;
+        }
+
+        .scroll-btn:hover {
+            background: #e50914;
+            border-color: #e50914;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .scroll-btn.left {
+            left: -25px;
+        }
+
+        .scroll-btn.right {
+            right: -25px;
+        }
+
+        .scroll-btn[disabled] {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(0.6);
+        }
+
+        /* Mini Confirm (예/아니요) */
+        .mini-confirm-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            display: none; z-index: 3000;
+        }
+        .mini-confirm-overlay.show { display: block; }
+        .mini-confirm {
+            position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: min(92vw, 360px);
+            background: #1b1b1b; border: 1px solid #2a2a2a; border-radius: 12px;
+            box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+            padding: 18px; z-index: 3001; display: none;
+        }
+        .mini-confirm.show { display: block; }
+        .mini-confirm-title { font-size: 18px; font-weight: 800; color:#fff; margin-bottom: 8px; }
+        .mini-confirm-message { font-size: 14px; color:#cfcfcf; margin-bottom: 16px; }
+        .mini-confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
+        .confirm-btn { padding: 10px 16px; border-radius: 8px; border:1px solid #3a3a3a; background:#2a2a2a; color:#e0e0e0; cursor:pointer; font-weight:700; }
+        .confirm-btn:hover { filter: brightness(1.05); }
+        .confirm-btn.yes { background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%); border-color:#e50914; color:#fff; box-shadow: 0 6px 18px rgba(229,9,20,0.28); }
+        .confirm-btn.no { background:#2a2a2a; }
+
+        /* Cancel Toast */
+        .cancel-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid #e50914;
+            border-radius: 12px;
+            padding: 24px 40px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            z-index: 10000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            box-shadow: 0 10px 40px rgba(229, 9, 20, 0.4);
+            backdrop-filter: blur(10px);
+        }
+        .cancel-toast.show {
+            opacity: 1;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(229, 9, 20, 0.1) 0%, rgba(255, 107, 107, 0.1) 100%);
+            border-radius: 15px;
+            margin-bottom: 60px;
+            border: 1px solid rgba(229, 9, 20, 0.2);
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #e50914;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #b3b3b3;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .top-nav {
+                left: 0;
+                height: 60px;
+                padding: 0 16px;
+            }
+
+            .main-content {
+                margin-left: 0;
+                margin-top: 60px;
+                padding: 14px;
+            }
+
+            .video-card {
+                width: calc(100vw - 48px);
+                max-width: 360px;
+            }
+            
+            .video-thumbnail {
+                height: calc((100vw - 48px) * 9 / 16);
+                max-height: 202.5px;
+            }
+
+            .video-info {
+                padding: 12px 6px 6px 6px;
+            }
+
+            .section-title {
+                font-size: 22px;
+            }
+
+            .user-profile {
+                padding: 6px 12px;
+            }
+
+            .user-name {
+                font-size: 13px;
+            }
+
+            .user-avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+
+            /* 모바일에서 스크롤 버튼이 화면 안쪽에 위치하도록 보정 */
+            .scroll-btn { width: 44px; height: 44px; }
+            .scroll-btn.left { left: 8px; }
+            .scroll-btn.right { right: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hamburger Button -->
+    <button id="hamburgerBtn" class="hamburger-btn" aria-controls="sidebar" aria-expanded="false" aria-label="메뉴 열기">☰</button>
+
+    <!-- Overlay -->
+    <div id="overlay" class="overlay" aria-hidden="true"></div>
+    <!-- Sidebar (off-canvas) - Test Settings panel -->
+    <div class="sidebar" id="sidebar" role="dialog" aria-modal="true" aria-hidden="true">
+        <main style="padding-top:110px;">
+            <!-- header removed per request (Test Settings) -->
+
+            <section class="setting-list" style="padding:0 6px 16px 6px;">
+                <!-- Environment -->
+                <div class="setting-card">
+                    <div class="setting-items" id="sbEnvItems">
+                        <!-- 외부 데이터 -->
+                        <div class="env-row">
+                            <div class="env-title"><span class="env-icon" style="background:#e50914"></span>외부 데이터</div>
+
+                            <!-- 시간대/조도 -->
+                            <div class="env-item">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span class="env-icon" aria-hidden="true"></span>
+                                    <div style="flex:1;">
+                                        <div class="env-label">시간대/조도</div>
+                                        <div class="env-current">현재 적용값: <span class="env-value" data-value="time">선택 안함</span></div>
+                                    </div>
+                                </div>
+                                <div class="env-button-group">
+                                    <button class="env-option-btn" data-category="time" data-value="sunrise">일출</button>
+                                    <button class="env-option-btn" data-category="time" data-value="day">낮</button>
+                                    <button class="env-option-btn" data-category="time" data-value="sunset">일몰</button>
+                                    <button class="env-option-btn" data-category="time" data-value="night">밤</button>
+                                </div>
+                            </div>
+
+                            <!-- 날씨 -->
+                            <div class="env-item">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span class="env-icon" aria-hidden="true"></span>
+                                    <div style="flex:1;">
+                                        <div class="env-label">날씨</div>
+                                        <div class="env-current">현재 적용값: <span class="env-value" data-value="weather">선택 안함</span></div>
+                                    </div>
+                                </div>
+                                <div class="env-button-group">
+                                    <button class="env-option-btn" data-category="weather" data-value="sunny">맑음</button>
+                                    <button class="env-option-btn" data-category="weather" data-value="cloudy">흐림</button>
+                                    <button class="env-option-btn" data-category="weather" data-value="rainy">비</button>
+                                    <button class="env-option-btn" data-category="weather" data-value="snowy">눈</button>
+                                </div>
+                            </div>
+
+                            <!-- 기념일 -->
+                            <div class="env-item">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span class="env-icon" aria-hidden="true"></span>
+                                    <div style="flex:1;">
+                                        <div class="env-label">기념일</div>
+                                        <div class="env-current">현재 적용값: <span class="env-value" data-value="holiday">선택 안함</span></div>
+                                    </div>
+                                </div>
+                                <div class="env-button-group">
+                                    <button class="env-option-btn" data-category="holiday" data-value="weekday">평일</button>
+                                    <button class="env-option-btn" data-category="holiday" data-value="birthday">생일</button>
+                                    <button class="env-option-btn" data-category="holiday" data-value="lunar_new_year">설날</button>
+                                    <button class="env-option-btn" data-category="holiday" data-value="chuseok">추석</button>
+                                    <button class="env-option-btn" data-category="holiday" data-value="halloween">할로윈</button>
+                                    <button class="env-option-btn" data-category="holiday" data-value="christmas">크리스마스</button>
+                                </div>
+                            </div>
+
+                            <!-- 습도 -->
+                            <div class="env-item">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span class="env-icon" aria-hidden="true"></span>
+                                    <div style="flex:1;">
+                                        <div class="env-label">습도</div>
+                                        <div class="env-current">현재 적용값: <span class="env-value" data-value="humidity">선택 안함</span></div>
+                                    </div>
+                                </div>
+                                <div class="env-button-group">
+                                    <button class="env-option-btn" data-category="humidity" data-value="dry">건조</button>
+                                    <button class="env-option-btn" data-category="humidity" data-value="moderate">적절</button>
+                                    <button class="env-option-btn" data-category="humidity" data-value="humid">습윤</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom action bar -->
+            <div class="sidebar-actions">
+                <div class="actions-inner">
+                    <button class="btn ghost full" id="sbReset">초기화</button>
+                    <button class="btn primary full" id="sbSave">저장</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+        <div class="nav-right">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <span class="user-icon">👤</span>
+                </div>
+                <span class="user-name">홍길동</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll Progress Indicator -->
+    <div class="scroll-progress">
+        <div class="scroll-progress-bar" id="scrollProgress"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Hero Section with Sticky Behavior -->
+        <div class="hero-section" id="heroSection">
+            <div class="hero-banner" id="heroBanner">
+                <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1920&auto=format&fit=crop" alt="자연/명상 스타일 히어로 이미지" />
+                <div class="hero-content">
+                    <h1 style="font-size: 52px; line-height:1.1; margin:0; color:#ffffff; letter-spacing:0.5px; font-family: 'Poppins', sans-serif;">AI FLAGSHIP</h1>
+                </div>
+                <div class="generation-buttons">
+                    <a href="콘텐츠선택 레이아웃.html" class="generation-button direct-gen">
+                        <span class="button-text">직접 생성하기</span>
+                    </a>
+                    <a href="#recommendedVideos" class="generation-button auto-gen" onclick="scrollToSection('recommendedVideos', this)">
+                        <span class="button-text">간편 생성하기</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Section with Scroll -->
+        <div class="content-section" id="contentSection">
+
+        <!-- My Videos Section -->
+        <section class="section" id="myVideos">
+            <div class="section-header">
+                <h2 class="section-title">내가 만든 영상</h2>
+            </div>
+            <div class="carousel-container">
+                <button class="scroll-btn left" aria-label="왼쪽으로 스크롤" data-target="myVideosCarousel" onclick="scrollCarousel('myVideosCarousel', -1)">‹</button>
+                <div class="carousel" id="myVideosCarousel">
+                    <div class="video-card" onclick="playVideo(1)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제" onclick="event.stopPropagation(); openMiniConfirm(this.closest('.video-card')); return false;">×</button>
+                            <img src="https://images.unsplash.com/photo-1506321806993-0e39f809ae59?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">3:24</div>
+                            <div class="video-badge">NEW</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 01</div>
+                            <div class="video-meta"><span>2시간 전</span><span>•</span><span>조회수 234</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(2)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제" onclick="event.stopPropagation(); openMiniConfirm(this.closest('.video-card')); return false;">×</button>
+                            <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">5:12</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 01</div>
+                            <div class="video-meta"><span>1일 전</span><span>•</span><span>조회수 1.2K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(3)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제" onclick="event.stopPropagation(); openMiniConfirm(this.closest('.video-card')); return false;">×</button>
+                            <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1080&auto=format&fit=crop" alt="자연 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">2:45</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">자연 풍경 모음 01</div>
+                            <div class="video-meta"><span>3일 전</span><span>•</span><span>조회수 856</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(4)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제" onclick="event.stopPropagation(); openMiniConfirm(this.closest('.video-card')); return false;">×</button>
+                            <img src="https://images.unsplash.com/photo-1465101162946-4377e57745c3?q=80&w=1080&auto=format&fit=crop" alt="식물 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">4:30</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">식물 타임랩스 01</div>
+                            <div class="video-meta"><span>5일 전</span><span>•</span><span>조회수 2.1K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(5)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제" onclick="event.stopPropagation(); openMiniConfirm(this.closest('.video-card')); return false;">×</button>
+                            <img src="https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">3:00</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 02</div>
+                            <div class="video-meta"><span>1주 전</span><span>•</span><span>조회수 3.5K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(6)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제" onclick="event.stopPropagation(); openMiniConfirm(this.closest('.video-card')); return false;">×</button>
+                            <img src="https://images.unsplash.com/photo-1507149833265-60c372daea22?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">6:15</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 02</div>
+                            <div class="video-meta"><span>2주 전</span><span>•</span><span>조회수 4.2K</span></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="scroll-btn right" aria-label="오른쪽으로 스크롤" data-target="myVideosCarousel" onclick="scrollCarousel('myVideosCarousel', 1)">›</button>
+            </div>
+        </section>
+        
+        <!-- Recommended Videos Section (moved up) -->
+        <section class="section" id="recommendedVideos">
+            <div class="section-header">
+                <h2 class="section-title">추천 재생 영상</h2>
+            </div>
+            <div class="carousel-container">
+                <button class="scroll-btn left" aria-label="왼쪽으로 스크롤" data-target="recommendedVideosCarousel" onclick="scrollCarousel('recommendedVideosCarousel', -1)">‹</button>
+                <div class="carousel" id="recommendedVideosCarousel">
+                    <div class="video-card" onclick="playVideo(7)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">4:50</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 05</div>
+                            <div class="video-meta"><span>AI Creator</span><span>•</span><span>조회수 15K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(8)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1507149833265-60c372daea22?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">7:20</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 05</div>
+                            <div class="video-meta"><span>Tech Insights</span><span>•</span><span>조회수 22K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(9)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1080&auto=format&fit=crop" alt="자연 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">5:35</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">자연 풍경 모음 04</div>
+                            <div class="video-meta"><span>Marketing Pro</span><span>•</span><span>조회수 18K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(10)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1080&auto=format&fit=crop" alt="식물 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">3:45</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">식물 타임랩스 04</div>
+                            <div class="video-meta"><span>Creative Studio</span><span>•</span><span>조회수 12K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(11)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">6:00</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 06</div>
+                            <div class="video-meta"><span>Story Makers</span><span>•</span><span>조회수 25K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(12)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">4:15</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 06</div>
+                            <div class="video-meta"><span>Quick Video</span><span>•</span><span>조회수 30K</span></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="scroll-btn right" aria-label="오른쪽으로 스크롤" data-target="recommendedVideosCarousel" onclick="scrollCarousel('recommendedVideosCarousel', 1)">›</button>
+            </div>
+        </section>
+        
+        <!-- Recent Played Videos Section (moved up) -->
+        <section class="section" id="recentPlayed">
+            <div class="section-header">
+                 <h2 class="section-title">최근 플레이 영상</h2>
+            </div>
+            <div class="carousel-container">
+                <button class="scroll-btn left" aria-label="왼쪽으로 스크롤" data-target="recentPlayedCarousel" onclick="scrollCarousel('recentPlayedCarousel', -1)">‹</button>
+                <div class="carousel" id="recentPlayedCarousel">
+                    <div class="video-card" onclick="playVideo(201)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 04</div>
+                            <div class="video-meta"><span>5분 전</span><span>•</span><span>조회수 9</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(202)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1507149833265-60c372daea22?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 04</div>
+                            <div class="video-meta"><span>20분 전</span><span>•</span><span>조회수 41</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(203)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1080&auto=format&fit=crop" alt="자연 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">자연 풍경 모음 03</div>
+                            <div class="video-meta"><span>1시간 전</span><span>•</span><span>조회수 87</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(204)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1465101162946-4377e57745c3?q=80&w=1080&auto=format&fit=crop" alt="식물 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">식물 타임랩스 03</div>
+                            <div class="video-meta"><span>어제</span><span>•</span><span>조회수 150</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 추가된 카드 4개 -->
+                    <div class="video-card" onclick="playVideo(205)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1080&auto=format&fit=crop" alt="인테리어 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">인테리어 투어 01</div>
+                            <div class="video-meta"><span>3일 전</span><span>•</span><span>조회수 1.1K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(206)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1080&auto=format&fit=crop" alt="자연 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">자연 풍경 모음 05</div>
+                            <div class="video-meta"><span>1주 전</span><span>•</span><span>조회수 2.3K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(207)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 07</div>
+                            <div class="video-meta"><span>2주 전</span><span>•</span><span>조회수 3.8K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(208)">
+                        <div class="video-thumbnail">
+                            <button class="delete-btn" type="button" aria-label="영상 삭제">×</button>
+                            <img src="https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1080&auto=format&fit=crop" alt="야경 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">도시 야경 모음 01</div>
+                            <div class="video-meta"><span>한 달 전</span><span>•</span><span>조회수 9.5K</span></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="scroll-btn right" aria-label="오른쪽으로 스크롤" data-target="recentPlayedCarousel" onclick="scrollCarousel('recentPlayedCarousel', 1)">›</button>
+            </div>
+        </section>
+
+        
+
+    </div>
+
+    <!-- Mini Confirm Popup -->
+    <div id="miniConfirmOverlay" class="mini-confirm-overlay" aria-hidden="true" onclick="closeMiniConfirm()"></div>
+    <div id="miniConfirm" class="mini-confirm" role="dialog" aria-modal="true" aria-labelledby="miniConfirmTitle" aria-describedby="miniConfirmMsg">
+        <div class="mini-confirm-title" id="miniConfirmTitle">삭제하시겠습니까?</div>
+        <div class="mini-confirm-message" id="miniConfirmMsg">정말로 이 영상을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.</div>
+        <div class="mini-confirm-actions">
+            <button type="button" class="confirm-btn yes" id="miniYes">예, 삭제</button>
+            <button type="button" class="confirm-btn no" id="miniNo" onclick="closeMiniConfirm()">아니요</button>
+
+    <!-- Cancel Toast -->
+    <div class="cancel-toast" id="cancelToast">
+        영상 생성이 취소되었습니다
+    </div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수 선언 (호이스팅을 위해 var 사용)
+        var pendingDeleteCard = null;
+        var miniDefaultFocus = 'no'; // 기본 포커스 대상: 'no' | 'yes'
+
+        // 삭제 확인 팝업 함수 (인라인 onclick에서 호출되므로 최상단에 선언)
+        function openMiniConfirm(card){
+            pendingDeleteCard = card;
+            const miniOverlay = document.getElementById('miniConfirmOverlay');
+            const miniConfirm = document.getElementById('miniConfirm');
+            const miniYes = document.getElementById('miniYes');
+            const miniNo = document.getElementById('miniNo');
+            
+            if (miniOverlay) miniOverlay.classList.add('show');
+            if (miniConfirm) miniConfirm.classList.add('show');
+            
+            // 기본 포커스 이동
+            setTimeout(() => {
+                const focusTarget = miniDefaultFocus === 'yes' ? miniYes : miniNo;
+                if (focusTarget) focusTarget.focus();
+            }, 0);
+        }
+        
+        function closeMiniConfirm(){
+            const miniOverlay = document.getElementById('miniConfirmOverlay');
+            const miniConfirm = document.getElementById('miniConfirm');
+            
+            if (miniOverlay) miniOverlay.classList.remove('show');
+            if (miniConfirm) miniConfirm.classList.remove('show');
+            pendingDeleteCard = null;
+        }
+
+        // Scroll handling
+    const scrollProgress = document.getElementById('scrollProgress');
+    const heroBanner = document.getElementById('heroBanner');
+    const contentSection = document.getElementById('contentSection');
+        
+        // Update progress bar on scroll
+        window.addEventListener('scroll', () => {
+            const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            const scrolled = (window.scrollY / scrollHeight) * 100;
+            scrollProgress.style.width = `${scrolled}%`;
+        });
+
+        // 스크롤 비율 기반 히어로 축소 처리
+        (function(){
+            const root = document.documentElement;
+            let ticking = false;
+            const SHRINK_DIST = 300; // px 기준 구간
+            function updateVar(){
+                const p = Math.min(1, Math.max(0, window.scrollY / SHRINK_DIST));
+                root.style.setProperty('--hero-p', p.toFixed(3));
+                ticking = false;
+            }
+            function onScroll(){
+                if (!ticking) {
+                    ticking = true;
+                    requestAnimationFrame(updateVar);
+                }
+            }
+            window.addEventListener('scroll', onScroll, { passive: true });
+            updateVar();
+        })();
+
+        // Handle hero banner click for generation
+        heroBanner?.addEventListener('click', () => {
+            // Add your generation logic here
+            console.log('Initiating AI video generation...');
+        });
+
+        // Reset scroll behavior after smooth scroll completes
+        contentSection?.addEventListener('scrollend', () => {
+            contentSection.style.scrollBehavior = 'auto';
+        });
+
+        // Hamburger + Overlay toggle
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebarEl = document.querySelector('.sidebar[role="dialog"]');
+    const overlayEl = document.getElementById('overlay');
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar[role="dialog"]');
+            if (!sidebar) return;
+            const isOpen = sidebar.classList.contains('open');
+            sidebar.classList.toggle('open');
+            // Toggle all overlays (handles duplicate IDs in DOM)
+            document.querySelectorAll('.overlay').forEach(ov => ov.classList.toggle('show', !isOpen));
+            // Update all toggle buttons' aria-expanded
+            document.querySelectorAll('#hamburgerBtn, .hamburger-btn').forEach(btn => {
+                btn.setAttribute('aria-expanded', String(!isOpen));
+            });
+        }
+
+        // Toggle clicks
+        hamburgerBtn?.addEventListener('click', toggleSidebar);
+        document.querySelectorAll('.hamburger-btn').forEach(b => b.addEventListener('click', toggleSidebar));
+        document.querySelectorAll('.overlay').forEach(ov => ov.addEventListener('click', toggleSidebar));
+
+        // Close sidebar with Escape key
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const sidebar = document.querySelector('.sidebar[role="dialog"]');
+                if (sidebar && sidebar.classList.contains('open')) {
+                    toggleSidebar();
+                }
+            }
+        });
+
+        // 외부 데이터 버튼 클릭 이벤트
+        document.querySelectorAll('.env-option-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const category = this.getAttribute('data-category');
+                const value = this.getAttribute('data-value');
+                
+                // 같은 카테고리 내의 다른 버튼들에서 active 제거
+                document.querySelectorAll(`.env-option-btn[data-category="${category}"]`).forEach(b => {
+                    b.classList.remove('active');
+                });
+                
+                // 클릭한 버튼에 active 추가
+                this.classList.add('active');
+                
+                console.log(`선택됨 - 카테고리: ${category}, 값: ${value}`);
+            });
+        });
+
+        // 초기화 버튼
+        const sbResetBtn = document.getElementById('sbReset');
+        sbResetBtn?.addEventListener('click', function() {
+            // 모든 버튼에서 active 제거
+            document.querySelectorAll('.env-option-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            console.log('테스트 세팅 초기화됨');
+        });
+
+        // 저장 버튼
+        const sbSaveBtn = document.getElementById('sbSave');
+        sbSaveBtn?.addEventListener('click', function() {
+            const selectedSettings = {};
+            
+            // 각 카테고리별로 선택된 값 수집
+            ['time', 'weather', 'holiday', 'humidity'].forEach(category => {
+                const activeBtn = document.querySelector(`.env-option-btn[data-category="${category}"].active`);
+                if (activeBtn) {
+                    selectedSettings[category] = activeBtn.getAttribute('data-value');
+                }
+            });
+            
+            console.log('저장된 세팅:', selectedSettings);
+            alert('테스트 세팅이 저장되었습니다!');
+        });
+
+        // Scroll to Section
+        function scrollToSection(sectionId, element) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const yOffset = -90; // 상단 고정 영역 보정
+                const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({top: y, behavior: 'smooth'});
+
+                // Remove active class from all nav-btns
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // Add active class to the clicked button
+                if (element) {
+                    element.classList.add('active');
+                }
+            }
+        }
+
+        // Update Settings
+        function updateSettings() {
+            const quality = document.getElementById('videoQuality').value;
+            const model = document.getElementById('aiModel').value;
+            const speed = document.getElementById('speedSlider').value;
+            const creativity = document.getElementById('creativitySlider').value;
+            const maxDuration = document.getElementById('maxDuration').value;
+
+            alert(`설정이 업데이트되었습니다!\n\n영상 품질: ${quality}\nAI 모델: ${model}\n생성 속도: ${speed}%\n창의성: ${creativity}%\n최대 길이: ${maxDuration}초`);
+        }
+
+        // Slider value display
+        document.getElementById('speedSlider').addEventListener('input', function(e) {
+            document.getElementById('speedValue').textContent = e.target.value + '%';
+        });
+
+        document.getElementById('creativitySlider').addEventListener('input', function(e) {
+            document.getElementById('creativityValue').textContent = e.target.value + '%';
+        });
+
+        // Carousel Scroll
+        function scrollCarousel(carouselId, direction) {
+            const carousel = document.getElementById(carouselId);
+            const scrollAmount = 340;
+            carousel.scrollBy({
+                left: direction * scrollAmount,
+                behavior: 'smooth'
+            });
+            // 스크롤 이후 상태 업데이트를 약간 지연시켜 반영
+            setTimeout(() => updateScrollButtons(carousel), 350);
+        }
+
+        // Play Video
+        function playVideo(videoId) {
+            // 스트리밍 레이아웃으로 이동
+            window.location.href = '스트리밍 레이아웃.html';
+        }
+
+        // 좌/우 버튼 상태 업데이트
+        function updateScrollButtons(carouselEl) {
+            if (!carouselEl) return;
+            const container = carouselEl.closest('.carousel-container');
+            if (!container) return;
+            const leftBtn = container.querySelector('.scroll-btn.left');
+            const rightBtn = container.querySelector('.scroll-btn.right');
+
+            const maxScrollLeft = carouselEl.scrollWidth - carouselEl.clientWidth;
+            const atStart = carouselEl.scrollLeft <= 1; // float 보정
+            const atEnd = carouselEl.scrollLeft >= maxScrollLeft - 1;
+
+            if (leftBtn) leftBtn.disabled = atStart;
+            if (rightBtn) rightBtn.disabled = atEnd;
+        }
+
+        // 초기화: 모든 캐러셀에 대해 상태 설정 및 스크롤 이벤트 바인딩
+        function initCarouselButtons() {
+            const carousels = document.querySelectorAll('.carousel');
+            carousels.forEach(c => {
+                updateScrollButtons(c);
+                c.addEventListener('scroll', () => updateScrollButtons(c));
+            });
+        }
+
+        // 초기 부트: 캐러셀 셔플 + 이미지 폴백 + 버튼 상태 초기화
+        function shuffleCarouselElement(carouselEl) {
+            if (!carouselEl) return;
+            const cards = Array.from(carouselEl.children);
+            if (cards.length <= 1) return;
+            // Fisher–Yates 셔플
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            cards.forEach(card => carouselEl.appendChild(card));
+        }
+
+        function shuffleAllCarousels() {
+            document.querySelectorAll('.carousel').forEach(shuffleCarouselElement);
+        }
+
+        function setImageFallbacks() {
+            const fallback = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1080&auto=format&fit=crop';
+            document.querySelectorAll('.video-thumbnail img').forEach(img => {
+                img.addEventListener('error', () => {
+                    if (img.dataset.fallbackApplied) return;
+                    img.dataset.fallbackApplied = '1';
+                    img.src = fallback;
+                });
+            });
+        }
+
+        function bootUI() {
+            shuffleAllCarousels();
+            setImageFallbacks();
+            initCarouselButtons();
+            // 삭제 버튼 부착 보장
+            try { attachDeleteButtons(); } catch(e) {}
+        }
+
+        window.addEventListener('load', bootUI);
+        window.addEventListener('resize', initCarouselButtons);
+
+        // 삭제 기능 - 모달 대신 네이티브 confirm 사용
+        function attachDeleteButtons() {
+            document.querySelectorAll('.video-card').forEach((card, index) => {
+                const thumb = card.querySelector('.video-thumbnail') || card;
+                if (!thumb) return;
+                // 기존 아이콘 제거 후 재생성으로 중복 방지
+                thumb.querySelectorAll('.delete-btn').forEach(btn => btn.remove());
+                const id = card.getAttribute('data-video-id') || `video-${index}`;
+                card.setAttribute('data-video-id', id);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'delete-btn';
+                btn.setAttribute('aria-label', '영상 삭제');
+                btn.title = '삭제';
+                btn.textContent = '×';
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    openMiniConfirm(card);
+                    return false;
+                });
+                thumb.appendChild(btn);
+            });
+        }
+
+        // 동적 변동 대응
+        const mo = new MutationObserver(() => attachDeleteButtons());
+        document.querySelectorAll('.carousel').forEach(c => mo.observe(c, { childList: true, subtree: true }));
+
+        // 초기 세팅
+        document.addEventListener('DOMContentLoaded', attachDeleteButtons);
+        window.addEventListener('load', attachDeleteButtons);
+
+        // 이벤트 리스너 바인딩 (DOM 로드 후)
+        document.addEventListener('DOMContentLoaded', () => {
+            const miniOverlay = document.getElementById('miniConfirmOverlay');
+            const miniNo = document.getElementById('miniNo');
+            const miniYes = document.getElementById('miniYes');
+            const miniConfirm = document.getElementById('miniConfirm');
+
+            miniOverlay?.addEventListener('click', closeMiniConfirm);
+            miniNo?.addEventListener('click', closeMiniConfirm);
+            
+            miniYes?.addEventListener('click', () => {
+                if (!pendingDeleteCard) return closeMiniConfirm();
+                const card = pendingDeleteCard;
+                const carousel = card.closest('.carousel');
+                
+                // 더 부드러운 높이 애니메이션
+                const startHeight = card.offsetHeight;
+                const comp = window.getComputedStyle(card);
+                const startMargin = comp.marginBottom;
+                
+                // 고정값 설정 후 트랜지션 적용
+                card.style.height = startHeight + 'px';
+                card.style.marginBottom = startMargin;
+                card.style.opacity = '1';
+                card.style.overflow = 'hidden';
+                card.style.transition = 'height 240ms ease, margin-bottom 240ms ease, opacity 200ms ease';
+                
+                requestAnimationFrame(() => {
+                    card.style.opacity = '0';
+                    card.style.height = '0px';
+                    card.style.marginBottom = '0px';
+                });
+                
+                // 제거 처리
+                const cleanup = () => {
+                    card.removeEventListener('transitionend', cleanup);
+                    card.remove();
+                    if (carousel) updateScrollButtons(carousel);
+                    closeMiniConfirm();
+                };
+                
+                card.addEventListener('transitionend', cleanup);
+                // 혹시 transition 이벤트가 누락될 경우 대비 타임아웃
+                setTimeout(cleanup, 320);
+            });
+
+            // ESC 키로 팝업 닫기
+            document.addEventListener('keydown', (e) => { 
+                if (e.key === 'Escape' && miniConfirm?.classList.contains('show')) {
+                    closeMiniConfirm(); 
+                }
+            });
+        });
+
+        // 안전 장치: 인라인으로 존재하는 삭제 버튼에도 클릭 이벤트 보장
+        function wireInlineDeleteButtons() {
+            document.querySelectorAll('.video-card .video-thumbnail > .delete-btn').forEach(btn => {
+                if (btn.dataset.bound) return;
+                btn.dataset.bound = '1';
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    const card = btn.closest('.video-card');
+                    if (!card) return;
+                    openMiniConfirm(card);
+                    return false;
+                });
+            });
+        }
+        document.addEventListener('DOMContentLoaded', wireInlineDeleteButtons);
+        window.addEventListener('load', wireInlineDeleteButtons);
+    // 섹션 갱신 후에도 보장
+    document.addEventListener('DOMContentLoaded', () => setTimeout(wireInlineDeleteButtons, 50));
+
+        // 햄버거 버튼 및 사이드바 제어
+        document.addEventListener('DOMContentLoaded', () => {
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+
+            if (!hamburgerBtn || !sidebar || !overlay) {
+                console.warn('햄버거 버튼, 사이드바 또는 오버레이를 찾을 수 없습니다.');
+                return;
+            }
+
+            // 사이드바 열기/닫기 토글 함수
+            function toggleSidebar() {
+                const isOpen = sidebar.classList.contains('open');
+                
+                if (isOpen) {
+                    // 사이드바 닫기
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('show');
+                    hamburgerBtn.classList.remove('active');
+                    hamburgerBtn.innerHTML = '☰'; // 햄버거 아이콘
+                    hamburgerBtn.setAttribute('aria-expanded', 'false');
+                    hamburgerBtn.setAttribute('aria-label', '메뉴 열기');
+                    sidebar.setAttribute('aria-hidden', 'true');
+                    overlay.setAttribute('aria-hidden', 'true');
+                } else {
+                    // 사이드바 열기
+                    sidebar.classList.add('open');
+                    overlay.classList.add('show');
+                    hamburgerBtn.classList.add('active');
+                    hamburgerBtn.innerHTML = '←'; // 뒤로가기 화살표
+                    hamburgerBtn.setAttribute('aria-expanded', 'true');
+                    hamburgerBtn.setAttribute('aria-label', '메뉴 닫기');
+                    sidebar.setAttribute('aria-hidden', 'false');
+                    overlay.setAttribute('aria-hidden', 'false');
+                }
+            }
+
+            // 햄버거 버튼 클릭 이벤트
+            hamburgerBtn.addEventListener('click', toggleSidebar);
+
+            // 오버레이 클릭 시 사이드바 닫기
+            overlay.addEventListener('click', () => {
+                if (sidebar.classList.contains('open')) {
+                    toggleSidebar();
+                }
+            });
+
+            // ESC 키로 사이드바 닫기
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    toggleSidebar();
+                }
+            });
+        });
+
+        // 취소 토스트 표시
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('cancelGeneration') === 'true') {
+                sessionStorage.removeItem('cancelGeneration');
+                const toast = document.getElementById('cancelToast');
+                if (toast) {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 1000);
+                }
+            }
+        });
+
+        // Capture-phase guard: prevent parent .video-card onclick (playVideo) when clicking delete button
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.delete-btn');
+            if (!btn) return;
+            const card = btn.closest('.video-card');
+            if (!card) return;
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            openMiniConfirm(card);
+            return false;
+        }, true);
+        
+        // Bubble-phase 추가 방어: 혹시 capture에서 놓친 경우 대비
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.delete-btn');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        }, false);
+
+        // Active Menu Item
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // .html 페이지로 이동하는 링크는 기본 이동 허용
+                const href = this.getAttribute('href');
+                if (href && href.endsWith('.html')) return;
+                e.preventDefault();
+                menuItems.forEach(mi => mi.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Highlight active nav button on scroll
+        window.addEventListener('scroll', function() {
+            const myVideosSection = document.getElementById('myVideos');
+            const recommendedSection = document.getElementById('recommendedVideos');
+            const navBtns = document.querySelectorAll('.nav-btn');
+            
+            const scrollPos = window.scrollY + 150;
+            
+            if (scrollPos >= recommendedSection.offsetTop) {
+                navBtns[0].classList.remove('active');
+                navBtns[1].classList.add('active');
+            } else if (scrollPos >= myVideosSection.offsetTop) {
+                navBtns[0].classList.add('active');
+                navBtns[1].classList.remove('active');
+            }
+        });
+        
+        /* --- Sidebar Test Settings wiring --- */
+        // Reuse functions from test-setting page: addItem, wireAddButtons, wireDropzone, addAttachments, bindRowActions, wirePresets
+        function sb_addItem(targetId, templateId) {
+            const container = document.getElementById(targetId);
+            const tpl = document.getElementById(templateId);
+            if (!container || !tpl) return;
+            const node = tpl.content.firstElementChild.cloneNode(true);
+            // bind row actions
+            node.querySelectorAll('[data-action]')?.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.getAttribute('data-action');
+                    if (action === 'delete') node.remove();
+                    else if (action === 'copy') {
+                        const clone = node.cloneNode(true);
+                        node.parentElement.appendChild(clone);
+                    }
+                });
+            });
+            // wire dropzone if present
+            const dropzone = node.querySelector('[data-role="dropzone"]');
+            if (dropzone) {
+                const fileInput = node.querySelector('[data-role="fileInput"]');
+                const chooseBtn = node.querySelector('[data-role="chooseFiles"]');
+                const list = node.querySelector('[data-role="attachmentList"]');
+                chooseBtn?.addEventListener('click', () => fileInput.click());
+                fileInput?.addEventListener('change', (e) => { addAttachments(list, Array.from(e.target.files || [])); fileInput.value = ''; });
+                dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#e50914'; });
+                dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#3a3a3a'; });
+                dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.style.borderColor = '#3a3a3a'; addAttachments(list, Array.from(e.dataTransfer.files || [])); });
+                dropzone.addEventListener('paste', (e) => { const files = Array.from(e.clipboardData?.files || []); if (files.length) { e.preventDefault(); addAttachments(list, files); } });
+            }
+            // wire preset selects
+            node.querySelectorAll('select.preset')?.forEach(sel => {
+                sel.addEventListener('change', () => {
+                    const type = sel.dataset.preset; const wrapper = sel.closest('.control-row'); if (!wrapper) return; const input = wrapper.querySelector('input, select.select'); if (!input) return; const val = sel.value; if (!val) return;
+                    if (input.tagName === 'INPUT') input.value = val; else if (input.tagName === 'SELECT') input.value = val;
+                });
+            });
+
+            // live-update env-value when an input/select changes
+            node.querySelectorAll('input.input, select.input, input[type="time"]').forEach(el => {
+                el.addEventListener('change', (e) => {
+                    const row = el.closest('.env-row') || el.closest('.setting-item');
+                    if (!row) return;
+                    // find nearest .env-item label for this control
+                    const item = el.closest('.env-item') || row.querySelector('.env-item');
+                    if (!item) return;
+                    const valueEl = item.querySelector('.env-value');
+                    if (!valueEl) return;
+                    let v = el.value;
+                    if (el.type === 'time' && v) {
+                        // keep hour:minute
+                    }
+                    if (el.tagName === 'SELECT') {
+                        const opt = el.selectedOptions[0]; v = opt ? opt.textContent : v;
+                    }
+                    valueEl.textContent = v || '적용값 없음';
+                });
+            });
+            container.appendChild(node);
+            // if container overflows (many items), add vertical scroll controls
+            if (targetId === 'sbEnvItems') {
+                const parent = container.closest('.setting-card');
+                if (!parent) return;
+                // remove existing controls
+                parent.querySelectorAll('.sb-scroll').forEach(el => el.remove());
+                // if scrollable
+                if (container.scrollHeight > container.clientHeight + 8) {
+                    const sc = document.createElement('div');
+                    sc.className = 'sb-scroll';
+                    const up = document.createElement('button'); up.textContent = '˄';
+                    const down = document.createElement('button'); down.textContent = '˅';
+                    up.addEventListener('click', () => { container.scrollBy({ top: -120, behavior: 'smooth' }); });
+                    down.addEventListener('click', () => { container.scrollBy({ top: 120, behavior: 'smooth' }); });
+                    sc.appendChild(up); sc.appendChild(down);
+                    parent.insertBefore(sc, container);
+                }
+            }
+        }
+
+        function sb_wireAddButtons() {
+            document.querySelectorAll('.sidebar .add-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.getAttribute('data-target');
+                    const map = {
+                        sbEnvItems: 'tpl-sb-env',
+                        sbSensorItems: 'tpl-sb-sensor',
+                        sbUserItems: 'tpl-sb-user',
+                        sbFileItems: 'tpl-sb-file'
+                    };
+                    sb_addItem(target, map[target]);
+                });
+            });
+        }
+
+        // Initialize sidebar templates when sidebar opens
+        hamburgerBtn.addEventListener('click', () => {
+            // If sidebar opened, ensure at least one sample row exists
+            setTimeout(() => {
+                ['sbEnvItems','sbSensorItems','sbUserItems','sbFileItems'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el && el.children.length === 0) {
+                        const map = { sbEnvItems: 'tpl-sb-env', sbSensorItems: 'tpl-sb-sensor', sbUserItems: 'tpl-sb-user', sbFileItems: 'tpl-sb-file' };
+                        sb_addItem(id, map[id]);
+                    }
+                });
+                sb_wireAddButtons();
+            }, 220);
+        });
+
+        // Bind change handlers for statically injected controls (update .env-value)
+        function bindStaticEnvControls() {
+            document.querySelectorAll('#sbEnvItems .env-item, #sbSensorItems .env-item, #sbUserItems .env-item').forEach(item => {
+                item.querySelectorAll('input.input, select.input, input[type="number"], select').forEach(el => {
+                    // avoid double-binding
+                    if (el.dataset.bound) return; el.dataset.bound = '1';
+                    el.addEventListener('change', (e) => {
+                        const valueEl = item.querySelector('.env-value');
+                        if (!valueEl) return;
+                        let v = el.value || '';
+                        if (el.tagName === 'SELECT') {
+                            const opt = el.selectedOptions[0]; v = opt ? opt.textContent.trim() : v;
+                        }
+                        valueEl.textContent = v || '적용값 없음';
+                    });
+                });
+            });
+        }
+
+        // Run once on load and also when sidebar is opened
+        window.addEventListener('load', bindStaticEnvControls);
+        hamburgerBtn.addEventListener('click', () => setTimeout(bindStaticEnvControls, 240));
+
+        // Sidebar bottom action handlers
+        document.getElementById('sbSave')?.addEventListener('click', () => {
+            const collect = (selector) => Array.from(document.querySelectorAll('#' + selector + ' .setting-item')).map(item => {
+                const inputs = item.querySelectorAll('input, select, textarea'); const obj = {}; inputs.forEach(el => { const key = el.name || el.type || 'field'; obj[key] = el.value; }); return obj;
+            });
+            const data = { env: collect('sbEnvItems'), sensor: collect('sbSensorItems'), user: collect('sbUserItems') };
+            alert('사이드바 설정 저장(샘플)\n' + JSON.stringify(data, null, 2));
+        });
+
+        document.getElementById('sbReset')?.addEventListener('click', () => {
+            ['sbEnvItems','sbSensorItems','sbUserItems','sbFileItems'].forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
+        });
+    </script>
+</body>
+</html>

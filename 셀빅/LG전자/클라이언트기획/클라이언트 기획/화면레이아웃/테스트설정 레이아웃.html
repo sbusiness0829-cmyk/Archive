@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Setting</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#141414; color:#fff; overflow-x:hidden; }
+
+    /* Top Navigation Bar (로그인 사용자 표시) */
+  .top-nav { position:fixed; top:0; left:0; right:0; height:70px; background:rgba(20,20,20,0.95); backdrop-filter: blur(10px); border-bottom:1px solid #2a2a2a; display:flex; align-items:center; justify-content:space-between; padding:0 24px; z-index:999; }
+  .nav-left { display:flex; align-items:center; gap:10px; }
+    .brand { font-weight:800; background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-size:20px; letter-spacing:0.3px; }
+  .back-btn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; background:transparent; border:1px solid #2a2a2a; color:#e0e0e0; cursor:pointer; font-size:16px; }
+  .back-btn:hover { border-color:#e50914; color:#fff; }
+    .user-area { display:flex; align-items:center; gap:12px; }
+    .avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; border:1px solid #2a2a2a; }
+    .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+    .user-name { font-weight:700; color:#e0e0e0; font-size:14px; }
+    .logout-btn { padding:8px 12px; background:transparent; border:1px solid #e50914; color:#e50914; border-radius:8px; font-weight:700; cursor:pointer; }
+
+    /* Main Content */
+    .main-content { margin-top: 70px; padding: 16px; }
+
+    /* Title / Action Bar */
+    .page-title { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+    .actions { display:flex; gap:10px; margin-bottom: 16px; }
+    .btn { padding:10px 16px; background:#2a2a2a; color:#fff; border:1px solid #3a3a3a; border-radius:8px; cursor:pointer; font-weight:700; transition: all 0.2s; }
+    .btn:hover { background:#333; }
+    .btn.primary { background:#e50914; border-color:#e50914; }
+    .btn.primary:hover { filter:brightness(1.05); }
+    .btn.ghost { background:transparent; border:1px solid #2a2a2a; }
+
+    /* Setting Groups */
+    .setting-list { display:grid; gap:16px; }
+    .setting-card { background:#1a1a1a; border:1px solid #2a2a2a; border-radius:12px; padding: 16px; }
+    .setting-header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
+    .setting-title { font-size:18px; font-weight:800; }
+    .add-btn { padding:8px 12px; border-radius:8px; background:transparent; border:1px dashed #444; color:#bdbdbd; cursor:pointer; }
+    .add-btn:hover { border-color:#e50914; color:#fff; }
+
+    .setting-items { display:grid; gap:10px; }
+  .setting-item { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:10px; background:#121212; border:1px solid #2a2a2a; border-radius:8px; padding:10px; }
+
+    .field { display:flex; flex-direction:column; gap:6px; }
+    .label { font-size:12px; color:#bdbdbd; }
+    .input, .select { width:100%; padding:10px 12px; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:8px; color:#fff; font-size:14px; }
+    .row-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+    .icon-btn { padding:8px 10px; border-radius:6px; border:1px solid #2a2a2a; background:#1f1f1f; color:#fff; cursor:pointer; }
+    .icon-btn:hover { border-color:#e50914; }
+
+    /* File dropzone */
+    .dropzone { grid-column: 1 / -1; border:1px dashed #3a3a3a; border-radius:10px; padding:14px; display:flex; align-items:center; justify-content:center; gap:10px; color:#bdbdbd; background:#161616; text-align:center; }
+    .dropzone:hover { border-color:#e50914; color:#fff; }
+    .hidden-input { display:none; }
+    .attachment-actions { display:flex; gap:8px; justify-content:center; }
+    .attachment-list { grid-column: 1 / -1; display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:10px; }
+    .attachment { background:#1b1b1b; border:1px solid #2a2a2a; border-radius:8px; padding:10px; display:flex; gap:10px; align-items:center; }
+    .attachment img { width:52px; height:52px; object-fit:cover; border-radius:6px; border:1px solid #2a2a2a; }
+    .attachment .meta { display:flex; flex-direction:column; font-size:12px; color:#d0d0d0; }
+  .attachment .remove { margin-left:auto; padding:6px 8px; border-radius:6px; border:1px solid #2a2a2a; background:#202020; color:#fff; cursor:pointer; }
+  /* Hint tags */
+  .hint { margin:6px 0 10px; color:#a8a8a8; font-size:12px; }
+  .tags { display:flex; flex-wrap:wrap; gap:6px; margin: 6px 0 10px; }
+  .tag { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border:1px solid #303030; border-radius:999px; background:#161616; color:#d8d8d8; font-size:12px; }
+  /* Preset controls */
+  .control-row { display:flex; gap:6px; align-items:center; }
+  .control-row .input, .control-row select.select:not(.preset) { flex:1 1 auto; }
+  .preset { min-width: 110px; height: 34px; padding: 6px 8px; font-size: 12px; border-radius:8px; background:#151515; border:1px solid #2a2a2a; color:#e0e0e0; }
+
+    @media (max-width: 900px) {
+      .setting-item { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation: 로그인 사용자 표시 -->
+  <div class="top-nav">
+    <div class="nav-left">
+      <button class="back-btn" id="btnBack" aria-label="뒤로가기" title="뒤로가기">←</button>
+      <div class="brand">LG 생성형 아트웍</div>
+    </div>
+    <div class="user-area">
+      <div class="avatar"><img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=200&auto=format&fit=crop" alt="avatar" /></div>
+      <div class="user-name">홍길동</div>
+      <button class="logout-btn">로그아웃</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <h1 class="page-title">Test Setting</h1>
+    <div class="actions">
+      <button class="btn ghost" id="btnReset">초기화</button>
+      <button class="btn primary" id="btnSave">저장하기</button>
+    </div>
+
+    <section class="setting-list">
+      <!-- 1. 환경 데이터 세팅 -->
+      <div class="setting-card" id="envSetting">
+        <div class="setting-header">
+          <div class="setting-title">환경 데이터 세팅</div>
+          <button class="add-btn" data-target="envItems">+ 추가</button>
+        </div>
+        <div class="hint">설정 항목</div>
+        <div class="tags" aria-label="환경 설정 가능 항목">
+          <span class="tag">시간</span>
+          <span class="tag">일조</span>
+          <span class="tag">하늘</span>
+          <span class="tag">기온</span>
+          <span class="tag">습도</span>
+          <span class="tag">공기질</span>
+          <span class="tag">위치</span>
+        </div>
+        <div class="setting-items" id="envItems"></div>
+      </div>
+
+      <!-- 2. 센서 데이터 세팅 -->
+      <div class="setting-card" id="sensorSetting">
+        <div class="setting-header">
+          <div class="setting-title">센서 데이터 세팅</div>
+          <button class="add-btn" data-target="sensorItems">+ 추가</button>
+        </div>
+        <div class="hint">설정 항목</div>
+        <div class="tags" aria-label="센서 설정 가능 항목">
+          <span class="tag">조도</span>
+          <span class="tag">온도</span>
+          <span class="tag">습도</span>
+          <span class="tag">소음</span>
+          <span class="tag">바람</span>
+          <span class="tag">공기질</span>
+          <span class="tag">조도 변화</span>
+          <span class="tag">관람거리</span>
+        </div>
+        <div class="setting-items" id="sensorItems"></div>
+      </div>
+
+      <!-- 3. 사용자 데이터 세팅 -->
+      <div class="setting-card" id="userSetting">
+        <div class="setting-header">
+          <div class="setting-title">사용자 데이터 세팅</div>
+          <button class="add-btn" data-target="userItems">+ 추가</button>
+        </div>
+        <div class="hint">설정 항목</div>
+        <div class="tags" aria-label="사용자 설정 가능 항목">
+          <span class="tag">재실</span>
+          <span class="tag">인원수</span>
+          <span class="tag">활동 레벨</span>
+        </div>
+        <div class="setting-items" id="userItems"></div>
+      </div>
+
+      <!-- 4. 추가 파일 세팅 -->
+      <div class="setting-card" id="fileSetting">
+        <div class="setting-header">
+          <div class="setting-title">추가 파일 세팅</div>
+          <button class="add-btn" data-target="fileItems">+ 추가</button>
+        </div>
+        <div class="hint">지원</div>
+        <div class="tags" aria-label="파일 세팅 지원 기능">
+          <span class="tag">사진(이미지)</span>
+          <span class="tag">사운드(오디오)</span>
+          <span class="tag">붙여넣기</span>
+          <span class="tag">드래그&amp;드롭</span>
+          <span class="tag">파일 선택</span>
+        </div>
+        <div class="setting-items" id="fileItems"></div>
+      </div>
+    </section>
+  </main>
+
+  <template id="tpl-env">
+    <div class="setting-item">
+      <div class="field">
+        <label class="label">시간</label>
+        <div class="control-row">
+          <input class="input" type="time" name="time" />
+          <select class="preset" data-preset="time">
+            <option value="">빠른 설정</option>
+            <option value="day">주간(09:00)</option>
+            <option value="night">야간(21:00)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">일조(%)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="insolation" min="0" max="100" placeholder="0~100" />
+          <select class="preset" data-preset="insolation">
+            <option value="">빠른 설정</option>
+            <option value="0">0 (실내/야간)</option>
+            <option value="50">50 (흐림)</option>
+            <option value="80">80 (맑음)</option>
+            <option value="100">100 (강한 직사)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">하늘</label>
+        <div class="control-row">
+        <select class="select" name="sky">
+          <option>맑음</option>
+          <option>구름 많음</option>
+          <option>흐림</option>
+          <option>비</option>
+          <option>눈</option>
+        </select>
+        <select class="preset" data-preset="sky">
+          <option value="">빠른 설정</option>
+          <option value="맑음">맑음</option>
+          <option value="구름 많음">구름 많음</option>
+          <option value="흐림">흐림</option>
+        </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">기온(°C)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="temperature" step="0.1" placeholder="예: 23.5" />
+          <select class="preset" data-preset="temperature">
+            <option value="">빠른 설정</option>
+            <option value="0">한겨울(0)</option>
+            <option value="15">간절기(15)</option>
+            <option value="25">쾌적(25)</option>
+            <option value="33">한여름(33)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">습도(%)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="humidity" min="0" max="100" />
+          <select class="preset" data-preset="humidity">
+            <option value="">빠른 설정</option>
+            <option value="30">건조(30)</option>
+            <option value="50">보통(50)</option>
+            <option value="70">높음(70)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">공기질</label>
+        <div class="control-row">
+        <select class="select" name="airQuality">
+          <option>좋음</option>
+          <option>보통</option>
+          <option>나쁨</option>
+          <option>매우 나쁨</option>
+        </select>
+        <select class="preset" data-preset="airQuality">
+          <option value="">빠른 설정</option>
+          <option value="좋음">좋음</option>
+          <option value="보통">보통</option>
+          <option value="나쁨">나쁨</option>
+        </select>
+        </div>
+      </div>
+      <div class="field" style="grid-column: 1 / -1;">
+        <label class="label">위치</label>
+        <div class="control-row">
+          <input class="input" type="text" name="location" placeholder="예: 서울특별시 중구" />
+          <select class="preset" data-preset="location">
+            <option value="">빠른 설정</option>
+            <option value="서울특별시">서울</option>
+            <option value="부산광역시">부산</option>
+            <option value="인천광역시">인천</option>
+          </select>
+        </div>
+      </div>
+      <div class="row-actions" style="grid-column: 1 / -1;">
+        <button class="icon-btn" data-action="copy">복제</button>
+        <button class="icon-btn" data-action="delete">삭제</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-sensor">
+    <div class="setting-item">
+      <div class="field">
+        <label class="label">조도(lux)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="illuminance" min="0" step="1" />
+          <select class="preset" data-preset="illuminance">
+            <option value="">빠른 설정</option>
+            <option value="0">암흑(0)</option>
+            <option value="50">흐림(50)</option>
+            <option value="300">실내(300)</option>
+            <option value="10000">맑은날(10000)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">온도(°C)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="temp" step="0.1" />
+          <select class="preset" data-preset="temp">
+            <option value="">빠른 설정</option>
+            <option value="18">서늘(18)</option>
+            <option value="24">보통(24)</option>
+            <option value="30">더움(30)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">습도(%)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="humid" min="0" max="100" />
+          <select class="preset" data-preset="humid">
+            <option value="">빠른 설정</option>
+            <option value="30">건조(30)</option>
+            <option value="50">보통(50)</option>
+            <option value="70">높음(70)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">소음(dB)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="noise" min="0" step="0.1" />
+          <select class="preset" data-preset="noise">
+            <option value="">빠른 설정</option>
+            <option value="30">조용(30)</option>
+            <option value="55">사무실(55)</option>
+            <option value="80">시끄러움(80)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">바람(m/s)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="wind" min="0" step="0.1" />
+          <select class="preset" data-preset="wind">
+            <option value="">빠른 설정</option>
+            <option value="0">정지(0)</option>
+            <option value="2">약함(2)</option>
+            <option value="5">강함(5)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">공기질(AQI)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="aqi" min="0" />
+          <select class="preset" data-preset="aqi">
+            <option value="">빠른 설정</option>
+            <option value="30">좋음(0~50)</option>
+            <option value="70">보통(51~100)</option>
+            <option value="120">나쁨(101~150)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">조도 변화(%)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="illuminanceDelta" min="-100" max="100" />
+          <select class="preset" data-preset="illuminanceDelta">
+            <option value="">빠른 설정</option>
+            <option value="-30">급감(-30)</option>
+            <option value="0">변화없음(0)</option>
+            <option value="30">급증(30)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">관람거리(m)</label>
+        <div class="control-row">
+          <input class="input" type="number" name="viewDistance" min="0" step="0.1" />
+          <select class="preset" data-preset="viewDistance">
+            <option value="">빠른 설정</option>
+            <option value="1">근접(1)</option>
+            <option value="3">중간(3)</option>
+            <option value="5">원거리(5)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row-actions" style="grid-column: 1 / -1;">
+        <button class="icon-btn" data-action="copy">복제</button>
+        <button class="icon-btn" data-action="delete">삭제</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-user">
+    <div class="setting-item">
+      <div class="field">
+        <label class="label">재실</label>
+        <div class="control-row">
+          <select class="select" name="occupancy">
+            <option value="yes">재실</option>
+            <option value="no">부재</option>
+          </select>
+          <select class="preset" data-preset="occupancy">
+            <option value="">빠른 설정</option>
+            <option value="yes">재실</option>
+            <option value="no">부재</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">인원수</label>
+        <div class="control-row">
+          <input class="input" type="number" name="people" min="0" step="1" />
+          <select class="preset" data-preset="people">
+            <option value="">빠른 설정</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">활동 레벨</label>
+        <div class="control-row">
+          <select class="select" name="activity">
+            <option>낮음</option>
+            <option>보통</option>
+            <option>높음</option>
+          </select>
+          <select class="preset" data-preset="activity">
+            <option value="">빠른 설정</option>
+            <option value="낮음">낮음</option>
+            <option value="보통">보통</option>
+            <option value="높음">높음</option>
+          </select>
+        </div>
+      </div>
+      <div class="row-actions" style="grid-column: 1 / -1;">
+        <button class="icon-btn" data-action="copy">복제</button>
+        <button class="icon-btn" data-action="delete">삭제</button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-file">
+    <div class="setting-item">
+      <div class="dropzone" data-role="dropzone">
+        사진/사운드 파일을 여기에 붙여넣기(Ctrl+V) 하거나 드래그 앤 드롭하세요.
+      </div>
+      <div class="attachment-actions" style="grid-column: 1 / -1;">
+        <button class="btn" data-role="chooseFiles">파일 선택</button>
+        <input class="hidden-input" type="file" accept="image/*,audio/*" multiple data-role="fileInput" />
+      </div>
+      <div class="attachment-list" data-role="attachmentList"></div>
+      <div class="row-actions" style="grid-column: 1 / -1;">
+        <button class="icon-btn" data-action="copy">복제</button>
+        <button class="icon-btn" data-action="delete">삭제</button>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    function addItem(targetId, templateId) {
+      const container = document.getElementById(targetId);
+      const tpl = document.getElementById(templateId);
+      if (!container || !tpl) return;
+      const node = tpl.content.firstElementChild.cloneNode(true);
+      bindRowActions(node, targetId, templateId);
+      wirePresets(node);
+      container.appendChild(node);
+    }
+
+    function bindRowActions(node, targetId, templateId) {
+      node.querySelectorAll('[data-action]')?.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.getAttribute('data-action');
+          if (action === 'delete') {
+            node.remove();
+          } else if (action === 'copy') {
+            const clone = node.cloneNode(true);
+            bindRowActions(clone, targetId, templateId);
+            node.parentElement.appendChild(clone);
+          }
+        });
+      });
+      // 파일 드롭존 wiring
+      const dropzone = node.querySelector('[data-role="dropzone"]');
+      if (dropzone) wireDropzone(node);
+    }
+
+    function wireAddButtons() {
+      document.querySelectorAll('.add-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-target');
+          const map = {
+            envItems: 'tpl-env',
+            sensorItems: 'tpl-sensor',
+            userItems: 'tpl-user',
+            fileItems: 'tpl-file',
+          };
+          addItem(target, map[target]);
+        });
+      });
+    }
+
+    function wireDropzone(scopeNode) {
+      const dropzone = scopeNode.querySelector('[data-role="dropzone"]');
+      const fileInput = scopeNode.querySelector('[data-role="fileInput"]');
+      const chooseBtn = scopeNode.querySelector('[data-role="chooseFiles"]');
+      const list = scopeNode.querySelector('[data-role="attachmentList"]');
+      if (!dropzone || !fileInput || !list) return;
+
+      chooseBtn?.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', (e) => {
+        addAttachments(list, Array.from(e.target.files || []));
+        fileInput.value = '';
+      });
+
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = '#e50914'; });
+      dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = '#3a3a3a'; });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault(); dropzone.style.borderColor = '#3a3a3a';
+        addAttachments(list, Array.from(e.dataTransfer.files || []));
+      });
+      // 붙여넣기 지원
+      dropzone.addEventListener('paste', (e) => {
+        const files = Array.from(e.clipboardData?.files || []);
+        if (files.length) { e.preventDefault(); addAttachments(list, files); }
+      });
+    }
+
+    function wirePresets(scopeNode) {
+      scopeNode.querySelectorAll('select.preset').forEach(sel => {
+        sel.addEventListener('change', () => {
+          const type = sel.dataset.preset;
+          const wrapper = sel.closest('.control-row');
+          if (!wrapper) return;
+          const input = wrapper.querySelector('input, select.select');
+          if (!input) return;
+          const val = sel.value;
+          if (!val) return;
+
+          const apply = (v) => {
+            if (input.tagName === 'INPUT') input.value = v;
+            else if (input.tagName === 'SELECT') input.value = v;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          };
+
+          switch (type) {
+            case 'time':
+              apply(val === 'day' ? '09:00' : '21:00'); break;
+            case 'insolation':
+            case 'temperature':
+            case 'humidity':
+            case 'illuminance':
+            case 'temp':
+            case 'humid':
+            case 'noise':
+            case 'wind':
+            case 'aqi':
+            case 'illuminanceDelta':
+            case 'viewDistance':
+            case 'people':
+              apply(val); break;
+            case 'sky':
+            case 'airQuality':
+            case 'occupancy':
+            case 'activity':
+              apply(val); break;
+            case 'location':
+              apply(val); break;
+            default:
+              break;
+          }
+        });
+      });
+    }
+
+    function addAttachments(listEl, files) {
+      files.filter(f => f.type.startsWith('image/') || f.type.startsWith('audio/')).forEach(file => {
+        const url = URL.createObjectURL(file);
+        const item = document.createElement('div');
+        item.className = 'attachment';
+        item.dataset.fileName = file.name;
+        item.dataset.fileType = file.type;
+        item.dataset.fileUrl = url;
+        const thumb = document.createElement('div');
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = url; img.alt = file.name; thumb.appendChild(img);
+        } else {
+          const img = document.createElement('img');
+          img.src = 'https://static.thenounproject.com/png/1402819-200.png';
+          img.alt = 'audio'; thumb.appendChild(img);
+        }
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.innerHTML = `<strong>${file.name}</strong><span>${(file.size/1024).toFixed(1)} KB</span>`;
+        const remove = document.createElement('button');
+        remove.className = 'remove';
+        remove.textContent = '삭제';
+        remove.addEventListener('click', () => { URL.revokeObjectURL(url); item.remove(); });
+        item.appendChild(thumb);
+        item.appendChild(meta);
+        item.appendChild(remove);
+        listEl.appendChild(item);
+      });
+    }
+
+    function resetAll() {
+      ['envItems','sensorItems','userItems','fileItems'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = '';
+      });
+    }
+
+    function saveAll() {
+      const data = {
+        env: collect('#envItems .setting-item'),
+        sensor: collect('#sensorItems .setting-item'),
+        user: collect('#userItems .setting-item'),
+        file: collectFiles('#fileItems .setting-item'),
+      };
+      alert('저장 데이터 (샘플)\n' + JSON.stringify(data, null, 2));
+    }
+
+    function collect(selector) {
+      return Array.from(document.querySelectorAll(selector)).map(item => {
+        const inputs = item.querySelectorAll('input, select, textarea');
+        const obj = {};
+        inputs.forEach(el => {
+          const key = el.name || el.getAttribute('aria-label') || el.type || 'field';
+          obj[key] = el.value;
+        });
+        return obj;
+      });
+    }
+
+    function collectFiles(selector) {
+      return Array.from(document.querySelectorAll(selector)).map(item => {
+        const obj = { attachments: [] };
+        const attachments = item.querySelectorAll('.attachment');
+        attachments.forEach(att => {
+          obj.attachments.push({
+            name: att.dataset.fileName,
+            type: att.dataset.fileType,
+            url: att.dataset.fileUrl,
+          });
+        });
+        return obj;
+      });
+    }
+
+    window.addEventListener('load', () => {
+      wireAddButtons();
+      document.getElementById('btnReset').addEventListener('click', resetAll);
+      document.getElementById('btnSave').addEventListener('click', saveAll);
+      document.getElementById('btnBack')?.addEventListener('click', () => { history.back(); });
+      // 기본 한 개씩 샘플 추가
+      addItem('envItems', 'tpl-env');
+      addItem('sensorItems', 'tpl-sensor');
+      addItem('userItems', 'tpl-user');
+      addItem('fileItems', 'tpl-file');
+    });
+  </script>
+</body>
+</html>

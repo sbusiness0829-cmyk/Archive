@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>테마 선택</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+	<style>
+		* { margin:0; padding:0; box-sizing:border-box; }
+
+		@keyframes move-background {
+		  0% {
+		    transform: translate(10%, -10%) rotate(0deg);
+		  }
+		  50% {
+		    transform: translate(-10%, 10%) rotate(180deg);
+		    }
+		  100% {
+		    transform: translate(10%, -10%) rotate(360deg);
+		  }
+		}
+
+		body { 
+			font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+			color:#fff; 
+			position: relative;
+			overflow: hidden;
+			background-color: #101010; /* Base color */
+		}
+
+		body::before {
+		  content: '';
+		  position: absolute;
+		  top: -100%;
+		  left: -100%;
+		  width: 300%;
+		  height: 300%;
+		  z-index: -1;
+		  background: 
+		    radial-gradient(circle at 15% 25%, #6a00b0, transparent 30%), /* Muted Deep Purple */
+		    radial-gradient(circle at 85% 20%, #a050e0, transparent 35%), /* Muted Lighter Purple */
+		    radial-gradient(circle at 30% 75%, #6a90c0, transparent 40%), /* Muted Bright Blue */
+		    radial-gradient(circle at 70% 80%, #30c0e0, transparent 30%), /* Muted Cyan */
+		    radial-gradient(circle at 50% 50%, #a050e0, transparent 25%); /* Muted Center highlight */
+		  animation: move-background 20s linear infinite;
+		}
+
+		/* Top Navigation */
+		.top-nav { position:fixed; top:0; left:0; right:0; height:70px; background:rgba(20,20,20,0.95); backdrop-filter: blur(10px); border-bottom:1px solid #2a2a2a; display:flex; align-items:center; justify-content:space-between; padding:0 24px; z-index:999; }
+		.nav-left { display:flex; align-items:center; gap:12px; }
+		.nav-right { display:flex; align-items:center; gap:16px; }
+		.brand { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 22px; color: #fff; }
+		.back-btn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; background:transparent; border:1px solid #2a2a2a; color:#e0e0e0; cursor:pointer; font-size:20px; font-weight:bold; }
+		.back-btn:hover { border-color:#e50914; color:#fff; }
+		.avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; border:1px solid #2a2a2a; }
+		.avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+		.user-name { font-weight:700; color:#e0e0e0; font-size:14px; }
+
+		/* Main */
+		.main { margin-top: 70px; min-height: calc(100dvh - 70px); display:flex; flex-direction:column; align-items:center; padding: 24px; position: relative; z-index: 1; }
+		.page-title { font-size: 36px; font-weight: 900; text-align:center; margin: 32px 0 16px; letter-spacing: -0.3px; }
+		.subtitle { color:#bdbdbd; margin-bottom: 20px; }
+
+		/* Grid */
+		.grid { width: min(1400px, 100%); display:grid; gap:16px; grid-template-columns: repeat(5, 1fr); margin-top: 40px; }
+		.card { position:relative; background:rgba(26,26,26,0.8); border:2px solid #2a2a2a; border-radius:14px; overflow:hidden; cursor:pointer; transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease; backdrop-filter: blur(3px); }
+		.card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 24px rgba(0,0,0,0.35); border-color:#e50914; }
+		.thumb { width:100%; height:200px; background:#101010; display:block; object-fit:cover; }
+		.card-title {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			z-index: 2;
+			background: rgba(0,0,0,0.6);
+			padding: 8px 16px;
+			border-radius: 999px;
+			font-weight: 700;
+			font-size: 16px;
+			color: #fff;
+			line-height: 1.4;
+			text-align: center;
+			width: max-content;
+			max-width: 90%;
+			backdrop-filter: blur(4px);
+			transition: transform 0.3s ease-in-out;
+		}
+		.card:hover .card-title {
+			transform: translate(-50%, -50%) scale(1.1);
+		}
+		.tag { margin-left:auto; font-size:12px; color:#aaa; border:1px solid #2e2e2e; padding:2px 6px; border-radius:999px; }
+
+		/* Focus/Active */
+		.card:focus { outline:2px solid #e50914; outline-offset:2px; }
+		.card.selected {
+			border-color: transparent;
+			outline: 3px solid #e50914;
+			outline-offset: 2px;
+		}
+
+		/* Footer action */
+		.footer { width:min(1200px,100%); display:flex; justify-content:flex-end; gap:10px; margin-top: 18px; }
+		.btn { padding:10px 16px; background:rgba(0, 0, 0, 0.5); color:#fff; border:1px solid #3a3a3a; border-radius:8px; cursor:pointer; font-weight:700; transition: all 0.2s; }
+		.btn:hover { background:#333; }
+		.btn.primary { background:#e50914; border-color:#e50914; }
+		.btn.primary:hover { filter:brightness(1.05); }
+
+	</style>
+</head>
+<body>
+	<div class="top-nav">
+		<div class="nav-left">
+			<div class="avatar"><img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=200&auto=format&fit=crop" alt="avatar" /></div>
+			<div class="user-name">홍길동</div>
+		</div>
+		<div class="nav-right">
+			<div class="brand">AI Flagship</div>
+			<button class="back-btn" id="btnBack" aria-label="닫기" title="닫기">X</button>
+		</div>
+	</div>
+
+	<main class="main">
+		<h1 class="page-title">테마 선택</h1>
+		<p class="subtitle"> AI가 만드는 나만의 특별한 영상!
+         원하는 테마를 선택하여 영상을 만들어보세요.
+        </p>
+
+			<section class="grid" id="themeGrid" aria-label="콘텐츠 테마 목록">
+				<!-- 카드들은 스크립트로 삽입 -->
+			</section>
+			<div style="text-align: center; margin-top: 20px;">
+				<button class="btn primary">뒤로 가기</button>
+			</div>
+	</main>
+
+	<div class="footer">
+		<button class="btn" onclick="history.back()">뒤로가기</button>
+	</div>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const THEMES = [
+				{ title:'테마1', img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마2', img:'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마3', img:'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마4', img:'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=800&auto=format&fit=crop' },
+				                { title:'테마5', img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop' },			];
+
+			function renderCards() {
+				const grid = document.getElementById('themeGrid');
+				if (!grid) return;
+				grid.innerHTML = '';
+				THEMES.forEach((t, idx) => {
+					const card = document.createElement('button');
+					card.className = 'card';
+					card.type = 'button';
+					card.setAttribute('aria-pressed', 'false');
+					card.innerHTML = `
+						<img class="thumb" alt="${t.title}" src="${t.img}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1500530855697-9844f1a3f0e8?q=80&w=800&auto=format&fit=crop';"/>
+						<div class="card-title">${t.title}</div>`;
+					card.addEventListener('click', () => selectCard(card, idx));
+					grid.appendChild(card);
+				});
+			}
+
+			function selectCard(card, idx) {
+				document.querySelectorAll('.card').forEach(c => { c.classList.remove('selected'); c.setAttribute('aria-pressed','false'); });
+				card.classList.add('selected');
+				card.setAttribute('aria-pressed','true');
+			}
+
+			function initEvents() {
+				const btnBack = document.getElementById('btnBack');
+				if (btnBack) {
+					btnBack.addEventListener('click', () => history.back());
+				}
+			}
+
+			renderCards();
+			initEvents();
+		});
+	</script>
+</body>
+</html>

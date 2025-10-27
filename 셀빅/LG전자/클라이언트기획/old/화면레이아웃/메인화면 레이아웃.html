@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #141414;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: -280px;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: #1a1a1a;
+            border-right: 1px solid #2a2a2a;
+            padding: 20px;
+            z-index: 2000;
+            overflow-y: auto;
+            transition: left 0.3s ease;
+        }
+        .sidebar.open { left: 0; box-shadow: 2px 0 16px rgba(0,0,0,0.3); }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #2a2a2a;
+            border-radius: 3px;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #b3b3b3;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .menu-item:hover {
+            background: #2a2a2a;
+            color: #ffffff;
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: linear-gradient(135deg, rgba(229, 9, 20, 0.2) 0%, rgba(255, 107, 107, 0.2) 100%);
+            color: #e50914;
+            border-left: 3px solid #e50914;
+        }
+
+        /* Test Settings */
+        .test-settings {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .settings-title {
+            font-size: 14px;
+            color: #b3b3b3;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .setting-group {
+            margin-bottom: 25px;
+        }
+
+        .setting-label {
+            display: block;
+            font-size: 13px;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: #e50914;
+            background: #333333;
+        }
+
+        .setting-select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .setting-select:focus {
+            outline: none;
+            border-color: #e50914;
+            background: #333333;
+        }
+
+        .setting-slider {
+            width: 100%;
+            height: 6px;
+            background: #2a2a2a;
+            border-radius: 3px;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        .setting-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #e50914;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .setting-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .slider-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 13px;
+            color: #e50914;
+            font-weight: 600;
+        }
+
+        .update-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .update-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #2a2a2a;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.03);
+            background: #3a3a3a;
+            border-color: #e50914;
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #e50914 0%, #ff6b6b 100%);
+            border-color: #e50914;
+            color: #ffffff;
+            transform: scale(1.03); /* 활성화 시에도 살짝 커진 상태 유지 */
+            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+        }
+
+        .menu-icon {
+            font-size: 24px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .hotkey {
+            margin-left: auto;
+            font-size: 12px;
+            background: #2a2a2a;
+            padding: 4px 8px;
+            border-radius: 5px;
+            color: #666;
+        }
+
+        /* Top Navigation */
+		.top-nav { position:fixed; top:0; left:0; right:0; height:70px; background:rgba(20,20,20,0.95); backdrop-filter: blur(10px); border-bottom:1px solid #2a2a2a; display:flex; align-items:center; justify-content:space-between; padding:0 24px; z-index:999; }
+		.nav-left { display:flex; align-items:center; gap:12px; }
+		.nav-right { display:flex; align-items:center; gap:16px; }
+		.brand { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 22px; color: #fff; }
+		.back-btn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; background:transparent; border:1px solid #2a2a2a; color:#e0e0e0; cursor:pointer; font-size:20px; font-weight:bold; }
+		.back-btn:hover { border-color:#e50914; color:#fff; }
+		.avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; border:1px solid #2a2a2a; }
+		.avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+		.user-name { font-weight:700; color:#e0e0e0; font-size:14px; }
+
+        /* Toggle Button */
+        /* Removed - no longer needed */
+
+        /* Main Content */
+        .main-content {
+            margin-left: 0;
+            margin-top: 70px; /* 기본 헤더 높이 */
+            padding: 10px; /* 패딩 추가 축소 */
+        }
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1500;
+        }
+        .overlay.show { display: block; }
+
+        /* Floating hamburger */
+        .hamburger-btn {
+            position: fixed; top: 90px; left: 50px; /* 헤더(70px) 아래로 20px 여유 */
+            width: 48px; height: 48px;
+            border-radius: 8px;
+            background: #e50914; color: #fff; border: none;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 24px; cursor: pointer; z-index: 2100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+
+        /* Netflix-like hero poster */
+        .hero-poster {
+            position: relative;
+            flex: 0 0 360px;
+            height: 160px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #2a2a2a;
+            background: #000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            will-change: transform;
+        }
+
+        .hero-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hero-poster::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 35%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: linear-gradient(135deg, #e50914, #ff4e4e);
+            color: #fff;
+            font-weight: 800;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            box-shadow: 0 6px 14px rgba(229,9,20,0.35);
+        }
+
+        .hero-poster:hover { transform: scale(1.03); box-shadow: 0 16px 40px rgba(0,0,0,0.45); }
+
+        /* Netflix-like wide hero banner */
+        .hero-banner {
+            position: relative;
+            width: 100%;
+            height: 220px; /* FHD에서 2개 리스트 노출 위한 추가 축소 */
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #2a2a2a;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            background: #000;
+        }
+
+        .hero-banner img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.65) 35%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.08) 85%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: absolute;
+            left: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3; /* 텍스트를 최상단으로 */
+            padding-right: 24px;
+            max-width: 60%;
+        }
+
+        .hero-content h1 {
+            text-shadow: 0 2px 12px rgba(0,0,0,0.65);
+        }
+
+        @media (max-width: 768px) {
+            .hero-banner { height: 180px; }
+        }
+
+        .section {
+            margin-bottom: 14px; /* 리스트 간 여백 추가 축소 */
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px; /* 섹션 헤더 하단 여백 추가 축소 */
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .view-all {
+            color: #b3b3b3;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .view-all:hover {
+            color: #e50914;
+        }
+
+        /* Video Carousel */
+        .carousel-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carousel {
+            display: flex;
+            gap: 10px; /* 카드 간격 축소 */
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;
+            scrollbar-color: #e50914 #2a2a2a;
+            padding-bottom: 8px; /* 하단 패딩 축소 */
+        }
+
+        .carousel::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .carousel::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 10px;
+        }
+
+        .carousel::-webkit-scrollbar-thumb {
+            background: #e50914;
+            border-radius: 10px;
+        }
+
+        .carousel::-webkit-scrollbar-thumb:hover {
+            background: #f40612;
+        }
+
+        .video-card {
+            min-width: 320px;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .video-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            height: 160px; /* 카드 높이 축소 */
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .video-thumbnail::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .video-card:hover .video-thumbnail::after {
+            opacity: 1;
+        }
+
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(229, 9, 20, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1;
+        }
+
+        .video-card:hover .play-icon {
+            opacity: 1;
+        }
+
+        .video-info {
+            padding: 8px 4px; /* 카드 정보 영역 여백 축소 */
+        }
+
+        .video-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .video-meta {
+            display: none; /* 업로드 날짜/조회수 메타 숨김 */
+            gap: 10px;
+            font-size: 14px;
+            color: #b3b3b3;
+        }
+
+        .video-duration {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            display: none; /* 시간 표시 숨김 */
+        }
+
+        .video-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #e50914;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Scroll Buttons */
+        .scroll-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(20, 20, 20, 0.9);
+            border: 1px solid #2a2a2a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+            opacity: 1; /* 항상 표시되도록 */
+        }
+
+        .carousel-container:hover .scroll-btn {
+            opacity: 1; /* 호버 시에도 동일 유지 (향후 효과 확장 여지) */
+        }
+
+        .scroll-btn:focus-visible {
+            outline: 2px solid #e50914;
+            outline-offset: 2px;
+        }
+
+        .scroll-btn:hover {
+            background: #e50914;
+            border-color: #e50914;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .scroll-btn.left {
+            left: -25px;
+        }
+
+        .scroll-btn.right {
+            right: -25px;
+        }
+
+        .scroll-btn[disabled] {
+            opacity: 0.4;
+            cursor: not-allowed;
+            filter: grayscale(0.6);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(229, 9, 20, 0.1) 0%, rgba(255, 107, 107, 0.1) 100%);
+            border-radius: 15px;
+            margin-bottom: 60px;
+            border: 1px solid rgba(229, 9, 20, 0.2);
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #e50914;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #b3b3b3;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .top-nav {
+                left: 0;
+                flex-wrap: wrap;
+                height: auto;
+                padding: 15px 20px;
+            }
+
+            .main-content {
+                margin-left: 0;
+                margin-top: 120px;
+                padding: 14px;
+            }
+
+            .video-card {
+                min-width: 250px;
+            }
+
+            .section-title {
+                font-size: 22px;
+            }
+
+            /* 모바일에서 스크롤 버튼이 화면 안쪽에 위치하도록 보정 */
+            .scroll-btn { width: 44px; height: 44px; }
+            .scroll-btn.left { left: 8px; }
+            .scroll-btn.right { right: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Overlay -->
+    <div id="overlay" class="overlay" aria-hidden="true"></div>
+    <!-- Sidebar (off-canvas) -->
+    <div class="sidebar" id="sidebar" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="sidebar-header">
+            <div class="logo">AI VIDEO</div>
+        </div>
+
+        <nav>
+            <a href="#manual" class="menu-item">
+                <span class="menu-icon">🎬</span>
+                <span>AI 영상 수동 생성</span>
+            </a>
+            <a href="#recommend" class="menu-item">
+                <span class="menu-icon">✨</span>
+                <span>AI 영상 추천 생성</span>
+            </a>
+            <a href="#settings" class="menu-item active">
+                <span class="menu-icon">⚙️</span>
+                <span>Test Setting</span>
+            </a>
+        </nav>
+
+        <!-- Test Settings Section -->
+        <div class="test-settings">
+            <div class="settings-title">Test Settings</div>
+            
+            <div class="setting-group">
+                <label class="setting-label">영상 품질</label>
+                <select class="setting-select" id="videoQuality">
+                    <option value="low">Low (480p)</option>
+                    <option value="medium" selected>Medium (720p)</option>
+                    <option value="high">High (1080p)</option>
+                    <option value="ultra">Ultra (4K)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">AI 모델 버전</label>
+                <select class="setting-select" id="aiModel">
+                    <option value="v1">Version 1.0</option>
+                    <option value="v2" selected>Version 2.0</option>
+                    <option value="v3">Version 3.0 (Beta)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">
+                    생성 속도
+                    <span class="slider-value" id="speedValue">50%</span>
+                </label>
+                <input type="range" min="0" max="100" value="50" class="setting-slider" id="speedSlider">
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">
+                    창의성 레벨
+                    <span class="slider-value" id="creativityValue">70%</span>
+                </label>
+                <input type="range" min="0" max="100" value="70" class="setting-slider" id="creativitySlider">
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">최대 영상 길이 (초)</label>
+                <input type="number" class="setting-input" id="maxDuration" value="60" min="10" max="600">
+            </div>
+
+            <button class="update-btn" onclick="updateSettings()">설정 업데이트</button>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar (Simple with Login) -->
+    <div class="top-nav" style="display:flex; align-items:center; justify-content:flex-end; padding: 0 40px; gap: 16px;">
+        <button style="padding:10px 18px; border:1px solid #e50914; color:#e50914; background:transparent; border-radius:8px; font-weight:700; cursor:pointer;">로그인</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- 본문 히어로 영역: 타이틀 + 이미지 -->
+    <div class="hero-banner" style="margin-bottom:12px;">
+            <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1920&auto=format&fit=crop" alt="자연/명상 스타일 히어로 이미지" />
+            <div class="hero-content">
+                <h1 style="font-size: 42px; line-height:1.1; margin:0; color:#ffffff; letter-spacing:0.5px;">LG생성형 아트월</h1>
+            </div>
+        </div>
+        <!-- 내용 영역 햄버거 버튼 -->
+        <button id="hamburgerBtn" class="hamburger-btn" aria-controls="sidebar" aria-expanded="false" aria-label="메뉴 열기">☰</button>
+        <!-- 섹션 이동 버튼 (헤더에서 이동) -->
+    <div style="display:flex; gap:10px; margin-bottom:12px; justify-content:flex-start; flex-wrap:wrap;">
+            <a href="#myVideos" class="nav-btn active" onclick="scrollToSection('myVideos', this)">
+                🎬 직접 생성하기
+            </a>
+            <a href="#recommendedVideos" class="nav-btn" onclick="scrollToSection('recommendedVideos', this)">
+                ✨ 자동으로 생성하기
+            </a>
+        </div>
+
+        <!-- My Videos Section -->
+        <section class="section" id="myVideos">
+            <div class="section-header">
+                <h2 class="section-title">내가 만든 영상</h2>
+            </div>
+            <div class="carousel-container">
+                <button class="scroll-btn left" aria-label="왼쪽으로 스크롤" data-target="myVideosCarousel" onclick="scrollCarousel('myVideosCarousel', -1)">‹</button>
+                <div class="carousel" id="myVideosCarousel">
+                    <div class="video-card" onclick="playVideo(1)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1506321806993-0e39f809ae59?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">3:24</div>
+                            <div class="video-badge">NEW</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 01</div>
+                            <div class="video-meta"><span>2시간 전</span><span>•</span><span>조회수 234</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(2)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">5:12</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 01</div>
+                            <div class="video-meta"><span>1일 전</span><span>•</span><span>조회수 1.2K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(3)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1080&auto=format&fit=crop" alt="자연 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">2:45</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">자연 풍경 모음 01</div>
+                            <div class="video-meta"><span>3일 전</span><span>•</span><span>조회수 856</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(4)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1465101162946-4377e57745c3?q=80&w=1080&auto=format&fit=crop" alt="식물 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">4:30</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">식물 타임랩스 01</div>
+                            <div class="video-meta"><span>5일 전</span><span>•</span><span>조회수 2.1K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(5)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">3:00</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 02</div>
+                            <div class="video-meta"><span>1주 전</span><span>•</span><span>조회수 3.5K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(6)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1507149833265-60c372daea22?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">6:15</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 02</div>
+                            <div class="video-meta"><span>2주 전</span><span>•</span><span>조회수 4.2K</span></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="scroll-btn right" aria-label="오른쪽으로 스크롤" data-target="myVideosCarousel" onclick="scrollCarousel('myVideosCarousel', 1)">›</button>
+            </div>
+        </section>
+        
+        <!-- Recommended Videos Section (moved up) -->
+        <section class="section" id="recommendedVideos">
+            <div class="section-header">
+                <h2 class="section-title">추천 재생 영상</h2>
+            </div>
+            <div class="carousel-container">
+                <button class="scroll-btn left" aria-label="왼쪽으로 스크롤" data-target="recommendedVideosCarousel" onclick="scrollCarousel('recommendedVideosCarousel', -1)">‹</button>
+                <div class="carousel" id="recommendedVideosCarousel">
+                    <div class="video-card" onclick="playVideo(7)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">4:50</div>
+                            <div class="video-badge">TRENDING</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 05</div>
+                            <div class="video-meta"><span>AI Creator</span><span>•</span><span>조회수 15K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(8)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1507149833265-60c372daea22?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">7:20</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 05</div>
+                            <div class="video-meta"><span>Tech Insights</span><span>•</span><span>조회수 22K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(9)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?q=80&w=1080&auto=format&fit=crop" alt="자연 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">5:35</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">자연 풍경 모음 04</div>
+                            <div class="video-meta"><span>Marketing Pro</span><span>•</span><span>조회수 18K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(10)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1080&auto=format&fit=crop" alt="식물 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">3:45</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">식물 타임랩스 04</div>
+                            <div class="video-meta"><span>Creative Studio</span><span>•</span><span>조회수 12K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(11)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">6:00</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 06</div>
+                            <div class="video-meta"><span>Story Makers</span><span>•</span><span>조회수 25K</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(12)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                            <div class="video-duration">4:15</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 06</div>
+                            <div class="video-meta"><span>Quick Video</span><span>•</span><span>조회수 30K</span></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="scroll-btn right" aria-label="오른쪽으로 스크롤" data-target="recommendedVideosCarousel" onclick="scrollCarousel('recommendedVideosCarousel', 1)">›</button>
+            </div>
+        </section>
+        
+        <!-- Recent Created Videos Section -->
+        <section class="section" id="recentCreated">
+            <div class="section-header">
+                 <h2 class="section-title">최근 생성된 영상</h2>
+            </div>
+            <div class="carousel-container">
+                <button class="scroll-btn left" aria-label="왼쪽으로 스크롤" data-target="recentCreatedCarousel" onclick="scrollCarousel('recentCreatedCarousel', -1)">‹</button>
+                <div class="carousel" id="recentCreatedCarousel">
+                    <div class="video-card" onclick="playVideo(101)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1506321806993-0e39f809ae59?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                                <div class="video-badge">NEW</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 03</div>
+                            <div class="video-meta"><span>방금 전</span><span>•</span><span>조회수 12</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(102)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 03</div>
+                            <div class="video-meta"><span>30분 전</span><span>•</span><span>조회수 58</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(103)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1080&auto=format&fit=crop" alt="자연 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">자연 풍경 모음 02</div>
+                            <div class="video-meta"><span>1시간 전</span><span>•</span><span>조회수 102</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(104)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1465101162946-4377e57745c3?q=80&w=1080&auto=format&fit=crop" alt="식물 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">식물 타임랩스 02</div>
+                            <div class="video-meta"><span>2시간 전</span><span>•</span><span>조회수 75</span></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="scroll-btn right" aria-label="오른쪽으로 스크롤" data-target="recentCreatedCarousel" onclick="scrollCarousel('recentCreatedCarousel', 1)">›</button>
+            </div>
+        </section>
+
+        <!-- Recent Played Videos Section -->
+        <section class="section" id="recentPlayed">
+            <div class="section-header">
+                 <h2 class="section-title">최근 플레이 영상</h2>
+            </div>
+            <div class="carousel-container">
+                <button class="scroll-btn left" aria-label="왼쪽으로 스크롤" data-target="recentPlayedCarousel" onclick="scrollCarousel('recentPlayedCarousel', -1)">‹</button>
+                <div class="carousel" id="recentPlayedCarousel">
+                    <div class="video-card" onclick="playVideo(201)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=1080&auto=format&fit=crop" alt="산책 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">산책 브이로그 04</div>
+                            <div class="video-meta"><span>5분 전</span><span>•</span><span>조회수 9</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(202)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1507149833265-60c372daea22?q=80&w=1080&auto=format&fit=crop" alt="강아지 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">귀여운 강아지 영상 04</div>
+                            <div class="video-meta"><span>20분 전</span><span>•</span><span>조회수 41</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(203)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1080&auto=format&fit=crop" alt="자연 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">자연 풍경 모음 03</div>
+                            <div class="video-meta"><span>1시간 전</span><span>•</span><span>조회수 87</span></div>
+                        </div>
+                    </div>
+
+                    <div class="video-card" onclick="playVideo(204)">
+                        <div class="video-thumbnail">
+                            <img src="https://images.unsplash.com/photo-1465101162946-4377e57745c3?q=80&w=1080&auto=format&fit=crop" alt="식물 영상 썸네일" />
+                            <div class="play-icon">▶</div>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">식물 타임랩스 03</div>
+                            <div class="video-meta"><span>어제</span><span>•</span><span>조회수 150</span></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="scroll-btn right" aria-label="오른쪽으로 스크롤" data-target="recentPlayedCarousel" onclick="scrollCarousel('recentPlayedCarousel', 1)">›</button>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        // Hamburger + Overlay toggle
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const sidebarEl = document.getElementById('sidebar');
+        const overlayEl = document.getElementById('overlay');
+        function openSidebar(){
+            sidebarEl.classList.add('open');
+            overlayEl.classList.add('show');
+            hamburgerBtn.setAttribute('aria-expanded','true');
+            sidebarEl.setAttribute('aria-hidden','false');
+        }
+        function closeSidebar(){
+            sidebarEl.classList.remove('open');
+            overlayEl.classList.remove('show');
+            hamburgerBtn.setAttribute('aria-expanded','false');
+            sidebarEl.setAttribute('aria-hidden','true');
+        }
+        hamburgerBtn.addEventListener('click', ()=>{
+            if(sidebarEl.classList.contains('open')) closeSidebar(); else openSidebar();
+        });
+        overlayEl.addEventListener('click', closeSidebar);
+        window.addEventListener('keydown', (e)=>{
+            if(e.key==='Escape') closeSidebar();
+        });
+        // Scroll to Section
+        function scrollToSection(sectionId, element) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const yOffset = -90; // 상단 고정 영역 보정
+                const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({top: y, behavior: 'smooth'});
+
+                // Remove active class from all nav-btns
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // Add active class to the clicked button
+                if (element) {
+                    element.classList.add('active');
+                }
+            }
+        }
+
+        // Update Settings
+        function updateSettings() {
+            const quality = document.getElementById('videoQuality').value;
+            const model = document.getElementById('aiModel').value;
+            const speed = document.getElementById('speedSlider').value;
+            const creativity = document.getElementById('creativitySlider').value;
+            const maxDuration = document.getElementById('maxDuration').value;
+
+            alert(`설정이 업데이트되었습니다!\n\n영상 품질: ${quality}\nAI 모델: ${model}\n생성 속도: ${speed}%\n창의성: ${creativity}%\n최대 길이: ${maxDuration}초`);
+        }
+
+        // Slider value display
+        document.getElementById('speedSlider').addEventListener('input', function(e) {
+            document.getElementById('speedValue').textContent = e.target.value + '%';
+        });
+
+        document.getElementById('creativitySlider').addEventListener('input', function(e) {
+            document.getElementById('creativityValue').textContent = e.target.value + '%';
+        });
+
+        // Carousel Scroll
+        function scrollCarousel(carouselId, direction) {
+            const carousel = document.getElementById(carouselId);
+            const scrollAmount = 340;
+            carousel.scrollBy({
+                left: direction * scrollAmount,
+                behavior: 'smooth'
+            });
+            // 스크롤 이후 상태 업데이트를 약간 지연시켜 반영
+            setTimeout(() => updateScrollButtons(carousel), 350);
+        }
+
+        // Play Video
+        function playVideo(videoId) {
+            alert(`영상 ${videoId}을(를) 재생합니다.`);
+        }
+
+        // 좌/우 버튼 상태 업데이트
+        function updateScrollButtons(carouselEl) {
+            if (!carouselEl) return;
+            const container = carouselEl.closest('.carousel-container');
+            if (!container) return;
+            const leftBtn = container.querySelector('.scroll-btn.left');
+            const rightBtn = container.querySelector('.scroll-btn.right');
+
+            const maxScrollLeft = carouselEl.scrollWidth - carouselEl.clientWidth;
+            const atStart = carouselEl.scrollLeft <= 1; // float 보정
+            const atEnd = carouselEl.scrollLeft >= maxScrollLeft - 1;
+
+            if (leftBtn) leftBtn.disabled = atStart;
+            if (rightBtn) rightBtn.disabled = atEnd;
+        }
+
+        // 초기화: 모든 캐러셀에 대해 상태 설정 및 스크롤 이벤트 바인딩
+        function initCarouselButtons() {
+            const carousels = document.querySelectorAll('.carousel');
+            carousels.forEach(c => {
+                updateScrollButtons(c);
+                c.addEventListener('scroll', () => updateScrollButtons(c));
+            });
+        }
+
+        // 초기 부트: 캐러셀 셔플 + 이미지 폴백 + 버튼 상태 초기화
+        function shuffleCarouselElement(carouselEl) {
+            if (!carouselEl) return;
+            const cards = Array.from(carouselEl.children);
+            if (cards.length <= 1) return;
+            // Fisher–Yates 셔플
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            cards.forEach(card => carouselEl.appendChild(card));
+        }
+
+        function shuffleAllCarousels() {
+            document.querySelectorAll('.carousel').forEach(shuffleCarouselElement);
+        }
+
+        function setImageFallbacks() {
+            const fallback = 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=1080&auto=format&fit=crop';
+            document.querySelectorAll('.video-thumbnail img').forEach(img => {
+                img.addEventListener('error', () => {
+                    if (img.dataset.fallbackApplied) return;
+                    img.dataset.fallbackApplied = '1';
+                    img.src = fallback;
+                });
+            });
+        }
+
+        function bootUI() {
+            shuffleAllCarousels();
+            setImageFallbacks();
+            initCarouselButtons();
+        }
+
+        window.addEventListener('load', bootUI);
+        window.addEventListener('resize', initCarouselButtons);
+
+        // Active Menu Item
+        const menuItems = document.querySelectorAll('.menu-item');
+        menuItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                menuItems.forEach(mi => mi.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Highlight active nav button on scroll
+        window.addEventListener('scroll', function() {
+            const myVideosSection = document.getElementById('myVideos');
+            const recommendedSection = document.getElementById('recommendedVideos');
+            const navBtns = document.querySelectorAll('.nav-btn');
+            
+            const scrollPos = window.scrollY + 150;
+            
+            if (scrollPos >= recommendedSection.offsetTop) {
+                navBtns[0].classList.remove('active');
+                navBtns[1].classList.add('active');
+            } else if (scrollPos >= myVideosSection.offsetTop) {
+                navBtns[0].classList.add('active');
+                navBtns[1].classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

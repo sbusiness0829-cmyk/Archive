@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>테마 선택</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+	<style>
+		* { margin:0; padding:0; box-sizing:border-box; }
+
+		@keyframes move-background {
+		  0% { transform: translate(10%, -10%) rotate(0deg); }
+		  50% { transform: translate(-10%, 10%) rotate(180deg); }
+		  100% { transform: translate(10%, -10%) rotate(360deg); }
+		}
+
+	body { 
+		font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+		color:#fff; 
+		position: relative;
+		overflow: hidden;
+		background-color: #101010; /* Base color */
+		height: 100vh;
+	}
+	body::before {
+		content: '';
+		position: absolute;
+		top: -100%;
+		left: -100%;
+		width: 300%;
+		height: 300%;
+		z-index: -1;
+		background: 
+			radial-gradient(circle at 15% 25%, #6a00b0, transparent 30%),
+			radial-gradient(circle at 85% 20%, #a050e0, transparent 35%),
+			radial-gradient(circle at 30% 75%, #6a90c0, transparent 40%),
+			radial-gradient(circle at 70% 80%, #30c0e0, transparent 30%),
+			radial-gradient(circle at 50% 50%, #a050e0, transparent 25%);
+		animation: move-background 20s linear infinite;
+	}
+
+	/* Top Navigation */
+	.top-nav { position:fixed; top:0; left:0; right:0; height:70px; background:rgba(20,20,20,0.95); backdrop-filter: blur(10px); border-bottom:1px solid #2a2a2a; display:flex; align-items:center; justify-content:space-between; padding:0 24px; z-index:999; }
+	.nav-left { display:flex; align-items:center; gap:12px; }
+	.nav-right { display:flex; align-items:center; gap:16px; }
+	.brand { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 22px; color: #fff; }
+	.back-btn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; background:transparent; border:1px solid #2a2a2a; color:#e0e0e0; cursor:pointer; font-size:20px; font-weight:bold; }
+	.back-btn:hover { border-color:#e50914; color:#fff; }
+	.avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; border:1px solid #2a2a2a; }
+	.avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+	.user-name { font-weight:700; color:#e0e0e0; font-size:14px; }
+
+	/* Main */
+	.main { 
+		margin-top: 70px; 
+		height: calc(100vh - 70px);
+		display: flex; 
+		flex-direction: column; 
+		align-items: center; 
+		justify-content: space-between;
+		padding: 24px; 
+		position: relative; 
+		z-index: 1;
+		overflow: hidden;
+	}
+	.page-title { font-size: 36px; font-weight: 900; text-align:center; margin: 32px 0 16px; letter-spacing: -0.3px; }
+	.subtitle { color:#bdbdbd; margin-bottom: 20px; }
+
+	/* Grid */
+	.grid { 
+		width: min(1400px, 100%); 
+		display: grid; 
+		gap: 16px; 
+		grid-template-columns: repeat(5, 1fr); 
+		margin-top: 20px;
+		flex: 1;
+		align-content: center;
+	}
+	.card { position:relative; background:rgba(26,26,26,0.8); border:2px solid #2a2a2a; border-radius:14px; overflow:hidden; cursor:pointer; transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease; backdrop-filter: blur(3px); }
+	.card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 24px rgba(0,0,0,0.35); border-color:#e50914; }
+	.thumb { width:100%; height:200px; background:#101010; display:block; object-fit:cover; }
+	.card-title { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; background: rgba(0,0,0,0.6); padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 16px; color: #fff; line-height: 1.4; text-align: center; width: max-content; max-width: 90%; backdrop-filter: blur(4px); transition: transform 0.3s ease-in-out; }
+	.card:hover .card-title { transform: translate(-50%, -50%) scale(1.1); }
+	.tag { margin-left:auto; font-size:12px; color:#aaa; border:1px solid #2e2e2e; padding:2px 6px; border-radius:999px; }
+
+	/* Focus/Active */
+	.card:focus { outline:2px solid #e50914; outline-offset:2px; }
+	.card.selected { border-color: transparent; outline: 3px solid #e50914; outline-offset: 2px; }
+
+	/* Cancel Toast Popup */
+	.cancel-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20, 20, 20, 0.95); border: 2px solid #e50914; border-radius: 12px; padding: 24px 40px; font-size: 18px; font-weight: 700; color: #fff; z-index: 10000; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 10px 40px rgba(229, 9, 20, 0.4); backdrop-filter: blur(10px); }
+	.cancel-toast.show { opacity: 1; }
+
+	/* Footer action */
+	.footer { width: 100%; max-width: 1200px; display: flex; justify-content: center; gap: 10px; padding: 20px 24px; position: relative; z-index: 100; }
+	.btn { padding: 14px 40px; background: #e50914; color: #fff; border: 2px solid #e50914; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 16px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4); }
+	.btn:hover { background: #ff0a16; border-color: #ff0a16; transform: translateY(-2px); box-shadow: 0 6px 16px rgba(229, 9, 20, 0.6); }
+	.btn.primary { background:#e50914; border-color:#e50914; }
+	.btn.primary:hover { filter:brightness(1.05); }
+	</style>
+</head>
+<body>
+	<div class="top-nav">
+		<div class="nav-left">
+			<div class="avatar"><img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=200&auto=format&fit=crop" alt="avatar" /></div>
+			<div class="user-name">홍길동</div>
+		</div>
+		<div class="nav-right">
+			<div class="brand">AI Flagship</div>
+			<button class="back-btn" id="btnBack" aria-label="닫기" title="닫기">X</button>
+		</div>
+	</div>
+
+	<main class="main">
+		<h1 class="page-title">테마 선택</h1>
+		<p class="subtitle" id="subtitle"> AI로 만드는 나만의 특별한 영상을 만들어보세요! </p>
+
+		<section class="grid" id="themeGrid" aria-label="콘텐츠 테마 목록">
+			<!-- 카드들은 스크립트로 삽입 -->
+		</section>
+
+		<div class="footer">
+			<button class="btn" onclick="goBackToContent()">뒤로가기</button>
+		</div>
+	</main>
+
+	<!-- Cancel Toast Popup -->
+	<div class="cancel-toast" id="cancelToast">영상 생성이 취소되었습니다</div>
+
+	<script>
+		// 메인화면으로 돌아가기 함수 (X 버튼용)
+		function goBackToMain() {
+			sessionStorage.setItem('cancelGeneration', 'true');
+			window.location.href = '메인화면 레이아웃.html';
+		}
+
+		// 콘텐츠 선택 화면으로 돌아가기 함수 (뒤로가기 버튼용)
+		function goBackToContent() {
+			window.location.href = '콘텐츠선택 레이아웃.html';
+		}
+
+		document.addEventListener('DOMContentLoaded', function() {
+			// 1) 콘텐츠 선택값 파싱 (?theme=명상 등)
+			const params = new URLSearchParams(window.location.search);
+			const selectedContent = params.get('theme');
+
+			// 2) 콘텐츠별 테마 매핑
+			const THEME_MAP = {
+				'명상': [
+					{ title:'모닥불', img:'https://images.unsplash.com/photo-1501691223387-dd0500403074?q=80&w=800&auto=format&fit=crop' },
+					{ title:'하늘', img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop' },
+					{ title:'비', img:'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?q=80&w=800&auto=format&fit=crop' },
+					{ title:'파도', img:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop' },
+					{ title:'수중', img:'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?q=80&w=800&auto=format&fit=crop' },
+				],
+				'비주얼아트': [
+					{ title:'운동', img:'https://images.unsplash.com/photo-1483721310020-03333e577078?q=80&w=800&auto=format&fit=crop' },
+					{ title:'집중', img:'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?q=80&w=800&auto=format&fit=crop' },
+					{ title:'휴식', img:'https://images.unsplash.com/photo-1505483531331-86cf20748722?q=80&w=800&auto=format&fit=crop' },
+					{ title:'파티', img:'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800&auto=format&fit=crop' },
+				],
+				'비주얼 아트': [
+					{ title:'운동', img:'https://images.unsplash.com/photo-1483721310020-03333e577078?q=80&w=800&auto=format&fit=crop' },
+					{ title:'집중', img:'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?q=80&w=800&auto=format&fit=crop' },
+					{ title:'휴식', img:'https://images.unsplash.com/photo-1505483531331-86cf20748722?q=80&w=800&auto=format&fit=crop' },
+					{ title:'파티', img:'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=800&auto=format&fit=crop' },
+				],
+				'애완동물': [
+					{ title:'개', img:'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=800&auto=format&fit=crop' },
+					{ title:'고양이', img:'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?q=80&w=800&auto=format&fit=crop' },
+					{ title:'새', img:'https://images.unsplash.com/photo-1463436755683-3f805a9d1192?q=80&w=800&auto=format&fit=crop' },
+					{ title:'토끼', img:'https://images.unsplash.com/photo-1545431827-2d9b2d35d6e1?q=80&w=800&auto=format&fit=crop' },
+					{ title:'햄스터', img:'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=800&auto=format&fit=crop' },
+				],
+				'시계': [
+					{ title:'자연 미니멀', img:'https://images.unsplash.com/photo-1521170665346-3f21e2291d8b?q=80&w=800&auto=format&fit=crop' },
+					{ title:'현대도시', img:'https://images.unsplash.com/photo-1468436139062-f60a71c5c892?q=80&w=800&auto=format&fit=crop' },
+					{ title:'미래우주', img:'https://images.unsplash.com/photo-1447433819943-74a20887a81e?q=80&w=800&auto=format&fit=crop' },
+					{ title:'클래식 감성', img:'https://images.unsplash.com/photo-1456324504439-367cee3b3c32?q=80&w=800&auto=format&fit=crop' },
+					{ title:'추상 예술', img:'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800&auto=format&fit=crop' },
+				],
+				'아바타': [
+					{ title:'운동', img:'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=800&auto=format&fit=crop' },
+					{ title:'공부', img:'https://images.unsplash.com/photo-1513258496099-48168024aec0?q=80&w=800&auto=format&fit=crop' },
+					{ title:'식사', img:'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?q=80&w=800&auto=format&fit=crop' },
+				],
+				'인테리어': [
+					{ title:'미니멀', img:'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=800&auto=format&fit=crop' },
+					{ title:'모던', img:'https://images.unsplash.com/photo-1528372444006-1bfc81acab02?q=80&w=800&auto=format&fit=crop' },
+					{ title:'럭셔리', img:'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=800&auto=format&fit=crop' },
+					{ title:'퓨처리스틱', img:'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=800&auto=format&fit=crop' },
+					{ title:'빈티지', img:'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=800&auto=format&fit=crop' },
+				],
+				'기념앨범': [
+					{ title:'여행', img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop' },
+					{ title:'자연', img:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=800&auto=format&fit=crop' },
+					{ title:'판타지', img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=800&auto=format&fit=crop' },
+					{ title:'과거', img:'https://images.unsplash.com/photo-1447069387593-a5de0862481e?q=80&w=800&auto=format&fit=crop' },
+				],
+				'기념 앨범': [
+					{ title:'여행', img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop' },
+					{ title:'자연', img:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=800&auto=format&fit=crop' },
+					{ title:'판타지', img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=800&auto=format&fit=crop' },
+					{ title:'과거', img:'https://images.unsplash.com/photo-1447069387593-a5de0862481e?q=80&w=800&auto=format&fit=crop' },
+				],
+				'음악감상': [
+					{ title:'스토리텔링 일러스트', img:'https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=800&auto=format&fit=crop' },
+					{ title:'심볼릭 아트', img:'https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?q=80&w=800&auto=format&fit=crop' },
+					{ title:'컬러 에코', img:'https://images.unsplash.com/photo-1520975922284-9d62f8e7d9bf?q=80&w=800&auto=format&fit=crop' },
+					{ title:'타이포그래피 모션', img:'https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=800&auto=format&fit=crop' },
+					{ title:'무드 시네마틱', img:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop' },
+				],
+				'음악 감상': [
+					{ title:'스토리텔링 일러스트', img:'https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=800&auto=format&fit=crop' },
+					{ title:'심볼릭 아트', img:'https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?q=80&w=800&auto=format&fit=crop' },
+					{ title:'컬러 에코', img:'https://images.unsplash.com/photo-1520975922284-9d62f8e7d9bf?q=80&w=800&auto=format&fit=crop' },
+					{ title:'타이포그래피 모션', img:'https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=800&auto=format&fit=crop' },
+					{ title:'무드 시네마틱', img:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop' },
+				],
+				'날씨': [
+					{ title:'자연 스카이라인', img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop' },
+					{ title:'도시 스카이라인', img:'https://images.unsplash.com/photo-1468436139062-f60a71c5c892?q=80&w=800&auto=format&fit=crop' },
+					{ title:'환상적 분위기', img:'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=800&auto=format&fit=crop' },
+					{ title:'추상적 무드', img:'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800&auto=format&fit=crop' },
+				],
+				'식물키우기': [
+					{ title:'다육이', img:'https://images.unsplash.com/photo-1466690672306-5f92132f7248?q=80&w=800&auto=format&fit=crop' },
+					{ title:'허브', img:'https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=800&auto=format&fit=crop' },
+					{ title:'분재', img:'https://images.unsplash.com/photo-1499336315816-097655dcfbda?q=80&w=800&auto=format&fit=crop' },
+					{ title:'열대', img:'https://images.unsplash.com/photo-1516663713099-37eb6d60c825?q=80&w=800&auto=format&fit=crop' },
+					{ title:'사막', img:'https://images.unsplash.com/photo-1495435229349-e86db7bfa013?q=80&w=800&auto=format&fit=crop' },
+				],
+			};
+
+			const DEFAULT_THEMES = [
+				{ title:'테마1', img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마2', img:'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마3', img:'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마4', img:'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마5', img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop' },
+			];
+
+			// 3) 부제목 업데이트
+			const subtitleEl = document.getElementById('subtitle');
+			if (subtitleEl && selectedContent) {
+				subtitleEl.textContent = `${selectedContent}용 테마를 선택하세요`;
+			}
+
+			// 4) 렌더
+			function renderCards() {
+				const grid = document.getElementById('themeGrid');
+				if (!grid) return;
+				grid.innerHTML = '';
+				const list = (selectedContent && THEME_MAP[selectedContent]) ? THEME_MAP[selectedContent] : DEFAULT_THEMES;
+				list.forEach((t, idx) => {
+					const card = document.createElement('button');
+					card.className = 'card';
+					card.type = 'button';
+					card.setAttribute('aria-pressed', 'false');
+					card.innerHTML = `
+						<img class="thumb" alt="${t.title}" src="${t.img}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1500530855697-9844f1a3f0e8?q=80&w=800&auto=format&fit=crop';"/>
+						<div class="card-title">${t.title}</div>`;
+					card.addEventListener('click', () => selectCard(card, idx));
+					grid.appendChild(card);
+				});
+			}
+
+			function selectCard(card, idx) {
+				document.querySelectorAll('.card').forEach(c => { c.classList.remove('selected'); c.setAttribute('aria-pressed','false'); });
+				card.classList.add('selected');
+				card.setAttribute('aria-pressed','true');
+				setTimeout(() => { window.location.href = '메인화면 레이아웃.html'; }, 300);
+			}
+
+			function initEvents() {
+				const btnBack = document.getElementById('btnBack');
+				if (btnBack) btnBack.addEventListener('click', goBackToMain);
+			}
+
+			renderCards();
+			initEvents();
+		});
+	</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>테마 선택</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+	<style>
+		* { margin:0; padding:0; box-sizing:border-box; }
+
+		@keyframes move-background {
+		  0% {
+		    transform: translate(10%, -10%) rotate(0deg);
+		  }
+		  50% {
+		    transform: translate(-10%, 10%) rotate(180deg);
+		    }
+		  100% {
+		    transform: translate(10%, -10%) rotate(360deg);
+		  }
+		}
+
+	body { 
+		font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+		color:#fff; 
+		position: relative;
+		overflow: hidden;
+		background-color: #101010; /* Base color */
+		height: 100vh;
+	}		body::before {
+		  content: '';
+		  position: absolute;
+		  top: -100%;
+		  left: -100%;
+		  width: 300%;
+		  height: 300%;
+		  z-index: -1;
+		  background: 
+		    radial-gradient(circle at 15% 25%, #6a00b0, transparent 30%), /* Muted Deep Purple */
+		    radial-gradient(circle at 85% 20%, #a050e0, transparent 35%), /* Muted Lighter Purple */
+		    radial-gradient(circle at 30% 75%, #6a90c0, transparent 40%), /* Muted Bright Blue */
+		    radial-gradient(circle at 70% 80%, #30c0e0, transparent 30%), /* Muted Cyan */
+		    radial-gradient(circle at 50% 50%, #a050e0, transparent 25%); /* Muted Center highlight */
+		  animation: move-background 20s linear infinite;
+		}
+
+		/* Top Navigation */
+		.top-nav { position:fixed; top:0; left:0; right:0; height:70px; background:rgba(20,20,20,0.95); backdrop-filter: blur(10px); border-bottom:1px solid #2a2a2a; display:flex; align-items:center; justify-content:space-between; padding:0 24px; z-index:999; }
+		.nav-left { display:flex; align-items:center; gap:12px; }
+		.nav-right { display:flex; align-items:center; gap:16px; }
+		.brand { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 22px; color: #fff; }
+		.back-btn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; background:transparent; border:1px solid #2a2a2a; color:#e0e0e0; cursor:pointer; font-size:20px; font-weight:bold; }
+		.back-btn:hover { border-color:#e50914; color:#fff; }
+		.avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; border:1px solid #2a2a2a; }
+		.avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+		.user-name { font-weight:700; color:#e0e0e0; font-size:14px; }
+
+	/* Main */
+	.main { 
+		margin-top: 70px; 
+		height: calc(100vh - 70px);
+		display: flex; 
+		flex-direction: column; 
+		align-items: center; 
+		justify-content: space-between;
+		padding: 24px; 
+		position: relative; 
+		z-index: 1;
+		overflow: hidden;
+	}
+		.page-title { font-size: 36px; font-weight: 900; text-align:center; margin: 32px 0 16px; letter-spacing: -0.3px; }
+		.subtitle { color:#bdbdbd; margin-bottom: 20px; }
+
+	/* Grid */
+	.grid { 
+		width: min(1400px, 100%); 
+		display: grid; 
+		gap: 16px; 
+		grid-template-columns: repeat(5, 1fr); 
+		margin-top: 20px;
+		flex: 1;
+		align-content: center;
+	}
+		.card { position:relative; background:rgba(26,26,26,0.8); border:2px solid #2a2a2a; border-radius:14px; overflow:hidden; cursor:pointer; transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease; backdrop-filter: blur(3px); }
+		.card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 24px rgba(0,0,0,0.35); border-color:#e50914; }
+		.thumb { width:100%; height:200px; background:#101010; display:block; object-fit:cover; }
+		.card-title {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			z-index: 2;
+			background: rgba(0,0,0,0.6);
+			padding: 8px 16px;
+			border-radius: 999px;
+			font-weight: 700;
+			font-size: 16px;
+			color: #fff;
+			line-height: 1.4;
+			text-align: center;
+			width: max-content;
+			max-width: 90%;
+			backdrop-filter: blur(4px);
+			transition: transform 0.3s ease-in-out;
+		}
+		.card:hover .card-title {
+			transform: translate(-50%, -50%) scale(1.1);
+		}
+		.tag { margin-left:auto; font-size:12px; color:#aaa; border:1px solid #2e2e2e; padding:2px 6px; border-radius:999px; }
+
+		/* Focus/Active */
+		.card:focus { outline:2px solid #e50914; outline-offset:2px; }
+		.card.selected {
+			border-color: transparent;
+			outline: 3px solid #e50914;
+			outline-offset: 2px;
+		}
+
+	/* Cancel Toast Popup */
+	.cancel-toast {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background: rgba(20, 20, 20, 0.95);
+		border: 2px solid #e50914;
+		border-radius: 12px;
+		padding: 24px 40px;
+		font-size: 18px;
+		font-weight: 700;
+		color: #fff;
+		z-index: 10000;
+		opacity: 0;
+		transition: opacity 0.3s ease;
+		pointer-events: none;
+		box-shadow: 0 10px 40px rgba(229, 9, 20, 0.4);
+		backdrop-filter: blur(10px);
+	}
+	.cancel-toast.show {
+		opacity: 1;
+	}
+
+	/* Footer action */
+	.footer { 
+		width: 100%;
+		max-width: 1200px;
+		display: flex; 
+		justify-content: center; 
+		gap: 10px; 
+		padding: 20px 24px;
+		position: relative;
+		z-index: 100;
+	}
+	.btn { 
+		padding: 14px 40px; 
+		background: #e50914;
+		color: #fff; 
+		border: 2px solid #e50914; 
+		border-radius: 8px; 
+		cursor: pointer; 
+		font-weight: 700; 
+		font-size: 16px;
+		transition: all 0.2s;
+		box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+	}
+	.btn:hover { 
+		background: #ff0a16; 
+		border-color: #ff0a16; 
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(229, 9, 20, 0.6);
+	}
+	.btn.primary { background:#e50914; border-color:#e50914; }
+	.btn.primary:hover { filter:brightness(1.05); }	</style>
+</head>
+<body>
+	<div class="top-nav">
+		<div class="nav-left">
+			<div class="avatar"><img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=200&auto=format&fit=crop" alt="avatar" /></div>
+			<div class="user-name">홍길동</div>
+		</div>
+		<div class="nav-right">
+			<div class="brand">AI Flagship</div>
+			<button class="back-btn" id="btnBack" aria-label="닫기" title="닫기">X</button>
+		</div>
+	</div>
+
+	<main class="main">
+		<h1 class="page-title">테마 선택</h1>
+		<p class="subtitle"> AI로 만드는 나만의 특별한 영상을 만들어보세요! </p>
+
+		<section class="grid" id="themeGrid" aria-label="콘텐츠 테마 목록">
+			<!-- 카드들은 스크립트로 삽입 -->
+		</section>
+
+		<div class="footer">
+			<button class="btn" onclick="goBackToContent()">뒤로가기</button>
+		</div>
+	</main>
+
+	<!-- Cancel Toast Popup -->
+	<div class="cancel-toast" id="cancelToast">
+		영상 생성이 취소되었습니다
+	</div>
+
+	<script>
+		// 메인화면으로 돌아가기 함수 (X 버튼용)
+		function goBackToMain() {
+			console.log('goBackToMain 호출됨 - 메인화면으로 이동');
+			sessionStorage.setItem('cancelGeneration', 'true');
+			window.location.href = '메인화면 레이아웃.html';
+		}
+
+		// 콘텐츠 선택 화면으로 돌아가기 함수 (뒤로가기 버튼용)
+		function goBackToContent() {
+			console.log('goBackToContent 호출됨 - 콘텐츠 선택 화면으로 이동');
+			window.location.href = '콘텐츠선택 레이아웃.html';
+		}
+
+		document.addEventListener('DOMContentLoaded', function() {
+			console.log('테마선택 페이지 로드 완료');
+			const THEMES = [
+				{ title:'테마1', img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마2', img:'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마3', img:'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마4', img:'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=800&auto=format&fit=crop' },
+				                { title:'테마5', img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop' },			];
+
+			function renderCards() {
+				const grid = document.getElementById('themeGrid');
+				if (!grid) return;
+				grid.innerHTML = '';
+				THEMES.forEach((t, idx) => {
+					const card = document.createElement('button');
+					card.className = 'card';
+					card.type = 'button';
+					card.setAttribute('aria-pressed', 'false');
+					card.innerHTML = `
+						<img class="thumb" alt="${t.title}" src="${t.img}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1500530855697-9844f1a3f0e8?q=80&w=800&auto=format&fit=crop';"/>
+						<div class="card-title">${t.title}</div>`;
+					card.addEventListener('click', () => selectCard(card, idx));
+					grid.appendChild(card);
+				});
+			}
+
+		function selectCard(card, idx) {
+			document.querySelectorAll('.card').forEach(c => { c.classList.remove('selected'); c.setAttribute('aria-pressed','false'); });
+			card.classList.add('selected');
+			card.setAttribute('aria-pressed','true');
+			
+			// 테마 선택 후 메인화면으로 이동
+			setTimeout(() => {
+				window.location.href = '메인화면 레이아웃.html';
+			}, 300); // 선택 애니메이션을 보여주기 위한 짧은 딜레이
+		}			function initEvents() {
+				const btnBack = document.getElementById('btnBack');
+				if (btnBack) {
+					btnBack.addEventListener('click', goBackToMain);
+				}
+			}
+
+			renderCards();
+			initEvents();
+		});
+	</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>테마 선택</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+	<style>
+		* { margin:0; padding:0; box-sizing:border-box; }
+
+		@keyframes move-background {
+		  0% {
+		    transform: translate(10%, -10%) rotate(0deg);
+		  }
+		  50% {
+		    transform: translate(-10%, 10%) rotate(180deg);
+		    }
+		  100% {
+		    transform: translate(10%, -10%) rotate(360deg);
+		  }
+		}
+
+	body { 
+		font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+		color:#fff; 
+		position: relative;
+		overflow: hidden;
+		background-color: #101010; /* Base color */
+		height: 100vh;
+	}		body::before {
+		  content: '';
+		  position: absolute;
+		  top: -100%;
+		  left: -100%;
+		  width: 300%;
+		  height: 300%;
+		  z-index: -1;
+		  background: 
+		    radial-gradient(circle at 15% 25%, #6a00b0, transparent 30%), /* Muted Deep Purple */
+		    radial-gradient(circle at 85% 20%, #a050e0, transparent 35%), /* Muted Lighter Purple */
+		    radial-gradient(circle at 30% 75%, #6a90c0, transparent 40%), /* Muted Bright Blue */
+		    radial-gradient(circle at 70% 80%, #30c0e0, transparent 30%), /* Muted Cyan */
+		    radial-gradient(circle at 50% 50%, #a050e0, transparent 25%); /* Muted Center highlight */
+		  animation: move-background 20s linear infinite;
+		}
+
+		/* Top Navigation */
+		.top-nav { position:fixed; top:0; left:0; right:0; height:70px; background:rgba(20,20,20,0.95); backdrop-filter: blur(10px); border-bottom:1px solid #2a2a2a; display:flex; align-items:center; justify-content:space-between; padding:0 24px; z-index:999; }
+		.nav-left { display:flex; align-items:center; gap:12px; }
+		.nav-right { display:flex; align-items:center; gap:16px; }
+		.brand { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 22px; color: #fff; }
+		.back-btn { display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; background:transparent; border:1px solid #2a2a2a; color:#e0e0e0; cursor:pointer; font-size:20px; font-weight:bold; }
+		.back-btn:hover { border-color:#e50914; color:#fff; }
+		.avatar { width:32px; height:32px; border-radius:50%; overflow:hidden; border:1px solid #2a2a2a; }
+		.avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+		.user-name { font-weight:700; color:#e0e0e0; font-size:14px; }
+
+	/* Main */
+	.main { 
+		margin-top: 70px; 
+		height: calc(100vh - 70px);
+		display: flex; 
+		flex-direction: column; 
+		align-items: center; 
+		justify-content: space-between;
+		padding: 24px; 
+		position: relative; 
+		z-index: 1;
+		overflow: hidden;
+	}
+		.page-title { font-size: 36px; font-weight: 900; text-align:center; margin: 32px 0 16px; letter-spacing: -0.3px; }
+		.subtitle { color:#bdbdbd; margin-bottom: 20px; }
+
+	/* Grid */
+	.grid { 
+		width: min(1400px, 100%); 
+		display: grid; 
+		gap: 16px; 
+		grid-template-columns: repeat(5, 1fr); 
+		margin-top: 20px;
+		flex: 1;
+		align-content: center;
+	}
+		.card { position:relative; background:rgba(26,26,26,0.8); border:2px solid #2a2a2a; border-radius:14px; overflow:hidden; cursor:pointer; transition: transform .18s ease, box-shadow .2s ease, border-color .2s ease; backdrop-filter: blur(3px); }
+		.card:hover { transform: translateY(-5px) scale(1.03); box-shadow: 0 10px 24px rgba(0,0,0,0.35); border-color:#e50914; }
+		.thumb { width:100%; height:200px; background:#101010; display:block; object-fit:cover; }
+		.card-title {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			z-index: 2;
+			background: rgba(0,0,0,0.6);
+			padding: 8px 16px;
+			border-radius: 999px;
+			font-weight: 700;
+			font-size: 16px;
+			color: #fff;
+			line-height: 1.4;
+			text-align: center;
+			width: max-content;
+			max-width: 90%;
+			backdrop-filter: blur(4px);
+			transition: transform 0.3s ease-in-out;
+		}
+		.card:hover .card-title {
+			transform: translate(-50%, -50%) scale(1.1);
+		}
+		.tag { margin-left:auto; font-size:12px; color:#aaa; border:1px solid #2e2e2e; padding:2px 6px; border-radius:999px; }
+
+		/* Focus/Active */
+		.card:focus { outline:2px solid #e50914; outline-offset:2px; }
+		.card.selected {
+			border-color: transparent;
+			outline: 3px solid #e50914;
+			outline-offset: 2px;
+		}
+
+		/* Cancel Toast Popup */
+		.cancel-toast {
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background: rgba(20, 20, 20, 0.95);
+			border: 2px solid #e50914;
+			border-radius: 12px;
+			padding: 24px 40px;
+			font-size: 18px;
+			font-weight: 700;
+			color: #fff;
+			z-index: 10000;
+			opacity: 0;
+			transition: opacity 0.3s ease;
+			pointer-events: none;
+			box-shadow: 0 10px 40px rgba(229, 9, 20, 0.4);
+			backdrop-filter: blur(10px);
+		}
+		.cancel-toast.show {
+			opacity: 1;
+		}
+
+	/* Footer action */
+	.footer { 
+		width: 100%;
+		max-width: 1200px;
+		display: flex; 
+		justify-content: center; 
+		gap: 10px; 
+		padding: 20px 24px;
+		position: relative;
+		z-index: 100;
+	}
+	.btn { 
+		padding: 14px 40px; 
+		background: #e50914;
+		color: #fff; 
+		border: 2px solid #e50914; 
+		border-radius: 8px; 
+		cursor: pointer; 
+		font-weight: 700; 
+		font-size: 16px;
+		transition: all 0.2s;
+		box-shadow: 0 4px 12px rgba(229, 9, 20, 0.4);
+	}
+	.btn:hover { 
+		background: #ff0a16; 
+		border-color: #ff0a16; 
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(229, 9, 20, 0.6);
+	}
+	.btn.primary { background:#e50914; border-color:#e50914; }
+	.btn.primary:hover { filter:brightness(1.05); }	</style>
+</head>
+<body>
+	<div class="top-nav">
+		<div class="nav-left">
+			<div class="avatar"><img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=200&auto=format&fit=crop" alt="avatar" /></div>
+			<div class="user-name">홍길동</div>
+		</div>
+		<div class="nav-right">
+			<div class="brand">AI Flagship</div>
+			<button class="back-btn" id="btnBack" aria-label="닫기" title="닫기">X</button>
+		</div>
+	</div>
+
+	<main class="main">
+		<h1 class="page-title">테마 선택</h1>
+		<p class="subtitle"> AI로 만드는 나만의 특별한 영상을 만들어보세요! </p>
+
+		<section class="grid" id="themeGrid" aria-label="콘텐츠 테마 목록">
+			<!-- 카드들은 스크립트로 삽입 -->
+		</section>
+
+		<div class="footer">
+			<button class="btn" onclick="goBackToContent()">뒤로가기</button>
+		</div>
+	</main>
+
+	<!-- Cancel Toast Popup -->
+	<div class="cancel-toast" id="cancelToast">
+		영상 생성이 취소되었습니다
+	</div>
+
+	<script>
+		// 메인화면으로 돌아가기 함수 (X 버튼용)
+		function goBackToMain() {
+			console.log('goBackToMain 호출됨 - 메인화면으로 이동');
+			sessionStorage.setItem('cancelGeneration', 'true');
+			window.location.href = '메인화면 레이아웃.html';
+		}
+
+		// 콘텐츠 선택 화면으로 돌아가기 함수 (뒤로가기 버튼용)
+		function goBackToContent() {
+			console.log('goBackToContent 호출됨 - 콘텐츠 선택 화면으로 이동');
+			window.location.href = '콘텐츠선택 레이아웃.html';
+		}
+
+		document.addEventListener('DOMContentLoaded', function() {
+			console.log('테마선택 페이지 로드 완료');
+			const THEMES = [
+				{ title:'테마1', img:'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마2', img:'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마3', img:'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=800&auto=format&fit=crop' },
+				{ title:'테마4', img:'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?q=80&w=800&auto=format&fit=crop' },
+				                { title:'테마5', img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop' },			];
+
+			function renderCards() {
+				const grid = document.getElementById('themeGrid');
+				if (!grid) return;
+				grid.innerHTML = '';
+				THEMES.forEach((t, idx) => {
+					const card = document.createElement('button');
+					card.className = 'card';
+					card.type = 'button';
+					card.setAttribute('aria-pressed', 'false');
+					card.innerHTML = `
+						<img class="thumb" alt="${t.title}" src="${t.img}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1500530855697-9844f1a3f0e8?q=80&w=800&auto=format&fit=crop';"/>
+						<div class="card-title">${t.title}</div>`;
+					card.addEventListener('click', () => selectCard(card, idx));
+					grid.appendChild(card);
+				});
+			}
+
+		function selectCard(card, idx) {
+			document.querySelectorAll('.card').forEach(c => { c.classList.remove('selected'); c.setAttribute('aria-pressed','false'); });
+			card.classList.add('selected');
+			card.setAttribute('aria-pressed','true');
+			
+			// 테마 선택 후 메인화면으로 이동
+			setTimeout(() => {
+				window.location.href = '메인화면 레이아웃.html';
+			}, 300); // 선택 애니메이션을 보여주기 위한 짧은 딜레이
+		}			function initEvents() {
+				const btnBack = document.getElementById('btnBack');
+				if (btnBack) {
+					btnBack.addEventListener('click', goBackToMain);
+				}
+			}
+
+			renderCards();
+			initEvents();
+		});
+	</script>
+</body>
+</html>
